@@ -5,9 +5,10 @@ from audioverse.utils import (
     read_epub_file,
 )
 
+
 def get_file_content(file):
     file_contents = None
-    if file is not None:        
+    if file is not None:
         file_type = file.type
         if "text" in file_type:
             file_contents = read_txt_file(file)

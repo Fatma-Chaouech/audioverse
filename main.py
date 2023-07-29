@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import streamlit as st
 import openai
 from elevenlabs.api import Voices
-from elevenlabs import generate, play, save
+from elevenlabs import generate, play
 from audioverse.prompts import VoiceCategoryPrompt
 from audioverse.utils import (
     get_file_if_path_exists,
@@ -28,30 +28,39 @@ def query_model(prompt):
             {"role": "system", "content": prompt["system"]},
             {"role": "user", "content": prompt["user"]},
         ],
+        temperature=0.2,
     )
     return completion.choices[0].message["content"]
 
 
 def preprare_ui():
-    uploaded_file = st.file_uploader("Upload your book", type=["txt", "pdf", "epub"])
+    uploaded_file = st.file_uploader(
+        "Upload your book", type=["txt", "pdf", "epub"], key="file_uploader"
+    )
 
-    if st.button("Send File"):
-        return get_file_content(uploaded_file)
+    if st.button("Upload Book"):
+        return uploaded_file.name, get_file_content(uploaded_file)
+
+    return None, None
 
 
-def run(content):
+def run(filename, content):
     load_dotenv()
     openai.api_key = os.getenv("OPENAI_API_KEY")
     voice_types = get_voices_info()
     template = VoiceCategoryPrompt()
     actor_name = query_model(template(voice_types, content))
-    print("GPT has chosen {} for the voice actor".format(actor_name))
+    print("GPT has chosen {} for the voice actor...".format(actor_name))
     audio = generate(content, voice=actor_name)
+    print("Audio generated...")
     play(audio)
-    save(audio, "./generated/book_test.mp3")
+    st.download_button(
+        label="Save Audiobook", data=audio, file_name=filename, mime="audio/mp3"
+    )
 
 
 if __name__ == "__main__":
-    content = preprare_ui()
+    name, content = preprare_ui()
     if content:
-        run(content)
+        print("File uploaded...")
+        run(name, content)
