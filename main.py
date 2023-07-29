@@ -14,14 +14,11 @@ from audioverse.helpers import get_file_content
 
 def get_voices_info():
     voice_types = get_file_if_path_exists("voice_types.json")
-    voice_ids = get_file_if_path_exists("voice_ids.json")
-    if not voice_types or not voice_ids:
+    if not voice_types:
         voices = Voices.from_api()
         voice_types = [{"name": voice.name, "labels": voice.labels} for voice in voices]
-        voice_ids = {voice.name: voice.voice_id for voice in voices}
         save_dict_to_json(voice_types, "voice_types.json")
-        save_dict_to_json(voice_ids, "voice_ids.json")
-    return voice_types, voice_ids
+    return voice_types
 
 
 def query_model(prompt):
@@ -45,10 +42,9 @@ def preprare_ui():
 def run(content):
     load_dotenv()
     openai.api_key = os.getenv("OPENAI_API_KEY")
-    voice_types, voice_ids = get_voices_info()
+    voice_types = get_voices_info()
     template = VoiceCategoryPrompt()
     actor_name = query_model(template(voice_types, content))
-    # actor_id = voice_ids[actor_name]
     print("GPT has chosen {} for the voice actor".format(actor_name))
     audio = generate(content, voice=actor_name)
     play(audio)
