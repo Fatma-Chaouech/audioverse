@@ -9,6 +9,6 @@ def save_dict_to_json(dictionnary, path):
 
 def get_file_if_path_exists(path):
     if os.path.exists(path):
-        with open("voices.json", "r") as f:
+        with open(path, "r") as f:
             return json.load(f)
     return None
