@@ -1,9 +1,15 @@
 import os
 from dotenv import load_dotenv
+import streamlit as st
 import openai
 from elevenlabs.api import Voices
+from elevenlabs import generate, play, save
 from audioverse.prompts import VoiceCategoryPrompt
-from audioverse.utils import get_file_if_path_exists, save_dict_to_json
+from audioverse.utils import (
+    get_file_if_path_exists,
+    save_dict_to_json,
+)
+from audioverse.helpers import get_file_content
 
 
 def get_voices_info():
@@ -19,7 +25,6 @@ def get_voices_info():
 
 
 def query_model(prompt):
-    openai.api_key = os.getenv("OPENAI_API_KEY")
     completion = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
@@ -27,22 +32,30 @@ def query_model(prompt):
             {"role": "user", "content": prompt["user"]},
         ],
     )
-    return completion.choices[0].message['content']
+    return completion.choices[0].message["content"]
 
 
-def run():
+def preprare_ui():
+    uploaded_file = st.file_uploader("Upload your book", type=["txt", "pdf", "epub"])
+
+    if st.button("Send File"):
+        return get_file_content(uploaded_file)
+
+
+def run(content):
     load_dotenv()
+    openai.api_key = os.getenv("OPENAI_API_KEY")
     voice_types, voice_ids = get_voices_info()
     template = VoiceCategoryPrompt()
-    text = """
-        Amelia tiptoed through the dense foliage of the ancient forest, her heart pounding with excitement and a hint of fear. The moss-covered trees towered above her, their gnarled branches forming an intricate canopy that filtered the sunlight. As she ventured deeper, the air seemed to hum with an otherworldly energy.
-        Amongst the shadows, Amelia caught a glimpse of a mysterious figure, tall and ethereal, moving gracefully between the trees. His voice was a soothing melody that seemed to resonate with the very essence of the forest. He spoke of forgotten tales and whispered secrets of the woodland creatures. Amelia felt drawn to him, a curious enchantment wrapping around her like a delicate vine.
-        In that moment, she knew she had found the perfect guide to explore the secrets of the forest.
-        """
-    actor_name = query_model(template(voice_types, text))
-    actor_id = voice_ids[actor_name]
-    print('GPT has chosen {} for the voice actor'.format(actor_name))
+    actor_name = query_model(template(voice_types, content))
+    # actor_id = voice_ids[actor_name]
+    print("GPT has chosen {} for the voice actor".format(actor_name))
+    audio = generate(content, voice=actor_name)
+    play(audio)
+    save(audio, "./generated/book_test.mp3")
 
 
 if __name__ == "__main__":
-    run()
+    content = preprare_ui()
+    if content:
+        run(content)

@@ -31,3 +31,8 @@ Breathe life into your books.
    sudo apt install ffmpeg
    ```
 7. Create a .env file (see the [.env.template](./.env.template))
+   
+### Technologies
+* ElevenLabs
+* OpenAI
+* Streamlit
