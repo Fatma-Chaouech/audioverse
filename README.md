@@ -1,5 +1,5 @@
 # AudioVerse
-Are you tired of reading books the traditional way? 😩 Experience a whole new world of literary immersion with AudioVerse! 🎧📚 AudioVerse allows you to effortlessly transform any written material into captivating audiobooks, complete with customizable language, voice actors, and exciting sound effects. 🌟🎙️💥
+Are you tired of reading books the traditional way? 😩 Experience a whole new world of literary immersion with AudioVerse! 🎧📚 AudioVerse allows you to effortlessly transform any written material into captivating audiobooks, complete with customizable language, cloned voices, and exciting sound effects. 🌟🎙️💥
 
 Join the auditory adventure now! 🚀🎶 AudioVerse: Breathe Life Into Your Books! 📚💨
 

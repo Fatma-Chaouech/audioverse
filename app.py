@@ -43,7 +43,7 @@ def run(filename, content, name, description, files):
     else:
         filenames = []
         for idx, file_ in enumerate(files):
-            filenames.append("clone_voices/{}_{}".format(name, idx))
+            filenames.append("voices/{}_{}".format(name, idx))
             with open(filenames[idx], "wb") as f:
                 f.write(file_.getbuffer())
         voice = clone(name=name, description=description, files=filenames)

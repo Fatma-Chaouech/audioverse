@@ -24,7 +24,7 @@ def get_file_content(file):
 
 
 def get_voices_info():
-    voice_types = get_file_if_path_exists("voice_types.json")
+    voice_types = get_file_if_path_exists("voices/voice_types.json")
     if not voice_types:
         voices = Voices.from_api()
         voice_types = [{"name": voice.name, "labels": voice.labels} for voice in voices]
