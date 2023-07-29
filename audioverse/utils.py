@@ -1,6 +1,7 @@
 import json
 import os
 from tika import parser
+from io import StringIO
 from ebooklib import epub, ITEM_DOCUMENT
 
 
@@ -17,7 +18,7 @@ def get_file_if_path_exists(path):
 
 
 def read_txt_file(file):
-    return file.read()
+    return file.getvalue().decode('utf-8')
 
 
 def read_pdf_file(file):
