@@ -1,15 +1,15 @@
 # AudioVerse
-Breathe life into your books
+Breathe life into your books.
 
 
 ## Usage
 1. Clone the repository
     ```
-    git clone https://github.com/Fatma-Chaouech/AudioVerse.git
+    git clone https://github.com/Fatma-Chaouech/audioverse.git
     ```
 2. Create a virtual environment
    ```
-   cd AudioVerse
+   cd audioverse
    python -m venv myenv
    ```
 3. Activate the virtual environment
