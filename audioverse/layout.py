@@ -30,3 +30,4 @@ def clone_section_layout():
         accept_multiple_files=True,
         disabled=st.session_state.clone_voice,
     )
+    return name, description, files

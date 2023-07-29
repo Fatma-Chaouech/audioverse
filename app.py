@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 import streamlit as st
 import openai
-from elevenlabs import generate, play
+from elevenlabs import generate, play, clone
 from audioverse.prompts import VoiceCategoryPrompt
 from audioverse.helpers import get_file_content, get_voices_info
 from audioverse.utils import query_model, change_cloning_state
@@ -20,24 +20,34 @@ def preprare_ui():
         "Clone Voice", key="clone_checkbox", on_change=change_cloning_state
     )
     if clone_voice:
-        clone_section_layout()
+        name, description, files = clone_section_layout()
 
-    if st.button(
-        "Upload Book",
-        type="primary",
-        use_container_width=True
-    ):
-        run(uploaded_file.name, get_file_content(uploaded_file))
+    if st.button("Upload Book", type="primary", use_container_width=True):
+        run(
+            uploaded_file.name,
+            get_file_content(uploaded_file),
+            name,
+            description,
+            files,
+        )
 
 
-def run(filename, content):
+def run(filename, content, name, description, files):
     load_dotenv()
-    openai.api_key = os.getenv("OPENAI_API_KEY")
-    voice_types = get_voices_info()
-    template = VoiceCategoryPrompt()
-    actor_name = query_model(template(voice_types, content))
-    print("GPT has chosen {} for the voice actor...".format(actor_name))
-    audio = generate(content, voice=actor_name)
+    if not files:
+        openai.api_key = os.getenv("OPENAI_API_KEY")
+        voice_types = get_voices_info()
+        template = VoiceCategoryPrompt()
+        voice = query_model(template(voice_types, content))
+        print("GPT has chosen {} for the voice actor...".format(voice))
+    else:
+        filenames = []
+        for idx, file_ in enumerate(files):
+            filenames.append("clone_voices/{}_{}".format(name, idx))
+            with open(filenames[idx], "wb") as f:
+                f.write(file_.getbuffer())
+        voice = clone(name=name, description=description, files=filenames)
+    audio = generate(content, voice=voice)
     print("Audio generation...")
     play(audio)
     st.download_button(
