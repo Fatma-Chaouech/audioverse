@@ -1,4 +1,8 @@
-import streamlit as st
+from elevenlabs.api import Voices
+from audioverse.utils import (
+    get_file_if_path_exists,
+    save_dict_to_json,
+)
 from audioverse.utils import (
     read_txt_file,
     read_pdf_file,
@@ -17,3 +21,12 @@ def get_file_content(file):
         elif "epub" in file_type:
             file_contents = read_epub_file(file)
     return file_contents
+
+
+def get_voices_info():
+    voice_types = get_file_if_path_exists("voice_types.json")
+    if not voice_types:
+        voices = Voices.from_api()
+        voice_types = [{"name": voice.name, "labels": voice.labels} for voice in voices]
+        save_dict_to_json(voice_types, "voice_types.json")
+    return voice_types

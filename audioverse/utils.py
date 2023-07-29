@@ -1,7 +1,8 @@
 import json
 import os
+import openai
 from tika import parser
-from io import StringIO
+import streamlit as st
 from ebooklib import epub, ITEM_DOCUMENT
 
 
@@ -18,7 +19,7 @@ def get_file_if_path_exists(path):
 
 
 def read_txt_file(file):
-    return file.getvalue().decode('utf-8')
+    return file.getvalue().decode("utf-8")
 
 
 def read_pdf_file(file):
@@ -33,3 +34,18 @@ def read_epub_file(file):
         if item.get_type() == ITEM_DOCUMENT:
             text += item.get_body_content().decode("utf-8")
     return text
+
+
+def change_cloning_state():
+    st.session_state.clone_voice = not st.session_state.clone_voice
+    
+def query_model(prompt):
+    completion = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": prompt["system"]},
+            {"role": "user", "content": prompt["user"]},
+        ],
+        temperature=0.2,
+    )
+    return completion.choices[0].message["content"]
