@@ -1,0 +1,392 @@
+[
+    {
+        "name": "Rachel",
+        "labels": {
+            "accent": "american",
+            "description": "calm",
+            "age": "young",
+            "gender": "female",
+            "use case": "narration"
+        }
+    },
+    {
+        "name": "Clyde",
+        "labels": {
+            "accent": "american",
+            "description": "war veteran",
+            "age": "middle aged",
+            "gender": "male",
+            "use case": "video games"
+        }
+    },
+    {
+        "name": "Domi",
+        "labels": {
+            "accent": "american",
+            "description": "strong",
+            "age": "young",
+            "gender": "female",
+            "use case": "narration"
+        }
+    },
+    {
+        "name": "Dave",
+        "labels": {
+            "accent": "british-essex",
+            "description": "conversational",
+            "age": "young",
+            "gender": "male",
+            "use case": "video games"
+        }
+    },
+    {
+        "name": "Fin",
+        "labels": {
+            "accent": "irish",
+            "description": "sailor",
+            "age": "old",
+            "gender": "male",
+            "use case": "video games"
+        }
+    },
+    {
+        "name": "Bella",
+        "labels": {
+            "accent": "american",
+            "description": "soft",
+            "age": "young",
+            "gender": "female",
+            "use case": "narration"
+        }
+    },
+    {
+        "name": "Antoni",
+        "labels": {
+            "accent": "american",
+            "description": "well-rounded",
+            "age": "young",
+            "gender": "male",
+            "use case": "narration"
+        }
+    },
+    {
+        "name": "Thomas",
+        "labels": {
+            "accent": "american",
+            "description": "calm",
+            "age": "young",
+            "gender": "male",
+            "use case": "meditation"
+        }
+    },
+    {
+        "name": "Charlie",
+        "labels": {
+            "accent": "australian",
+            "description": "casual",
+            "age": "middle aged",
+            "gender": "male",
+            "use case": "conversational"
+        }
+    },
+    {
+        "name": "Emily",
+        "labels": {
+            "accent": "american",
+            "description": "calm",
+            "age": "young",
+            "gender": "female",
+            "use case": "meditation"
+        }
+    },
+    {
+        "name": "Elli",
+        "labels": {
+            "accent": "american",
+            "description": "emotional",
+            "age": "young",
+            "gender": "female",
+            "use case": "narration"
+        }
+    },
+    {
+        "name": "Callum",
+        "labels": {
+            "accent": "american",
+            "description": "hoarse",
+            "age": "middle aged",
+            "gender": "male",
+            "use case": "video games"
+        }
+    },
+    {
+        "name": "Patrick",
+        "labels": {
+            "accent": "american",
+            "description": "shouty",
+            "age": "middle aged",
+            "gender": "male",
+            "use case": "video games"
+        }
+    },
+    {
+        "name": "Harry ",
+        "labels": {
+            "accent": "american",
+            "description": "anxious",
+            "age": "young",
+            "gender": "male",
+            "use case": "video games"
+        }
+    },
+    {
+        "name": "Liam",
+        "labels": {
+            "accent": "american",
+            "age": "young",
+            "gender": "male",
+            "use case": "narration",
+            "description ": "neutral"
+        }
+    },
+    {
+        "name": "Dorothy",
+        "labels": {
+            "accent": "british",
+            "description": "pleasant",
+            "age": "young",
+            "gender": "female",
+            "use case": "children's stories"
+        }
+    },
+    {
+        "name": "Josh",
+        "labels": {
+            "accent": "american",
+            "description": "deep",
+            "age": "young",
+            "gender": "male",
+            "use case": "narration"
+        }
+    },
+    {
+        "name": "Arnold",
+        "labels": {
+            "accent": "american",
+            "description": "crisp",
+            "age": "middle aged",
+            "gender": "male",
+            "use case": "narration"
+        }
+    },
+    {
+        "name": "Charlotte",
+        "labels": {
+            "accent": "english-swedish",
+            "description": "seductive",
+            "age": "middle aged",
+            "gender": "female",
+            "use case": "video games"
+        }
+    },
+    {
+        "name": "Matilda ",
+        "labels": {
+            "accent": "american",
+            "description": "warm",
+            "age": "young",
+            "gender": "female",
+            "use case": "audiobook"
+        }
+    },
+    {
+        "name": "Matthew",
+        "labels": {
+            "accent": "british",
+            "age": "middle aged",
+            "gender": "male",
+            "use case": "audiobook",
+            "description ": "calm"
+        }
+    },
+    {
+        "name": "James",
+        "labels": {
+            "accent": "australian",
+            "description": "calm ",
+            "age": "old",
+            "gender": "male",
+            "use case": "news"
+        }
+    },
+    {
+        "name": "Joseph",
+        "labels": {
+            "accent": "british",
+            "age": "middle aged",
+            "gender": "male",
+            "use case": "news",
+            "description ": "ground reporter "
+        }
+    },
+    {
+        "name": "Jeremy",
+        "labels": {
+            "accent": "american-irish",
+            "description": "excited",
+            "age": "young",
+            "gender": "male",
+            "use case": "narration"
+        }
+    },
+    {
+        "name": "Michael ",
+        "labels": {
+            "accent": "american",
+            "age": "old",
+            "gender": "male",
+            "use case": "audiobook",
+            "description ": "orotund"
+        }
+    },
+    {
+        "name": "Ethan",
+        "labels": {
+            "accent": "american",
+            "age": "young",
+            "gender": "male",
+            "use case": "ASMR",
+            "description ": "whisper"
+        }
+    },
+    {
+        "name": "Gigi",
+        "labels": {
+            "accent": "american",
+            "description": "childlish",
+            "age": "young",
+            "gender": "female",
+            "use case": "animation"
+        }
+    },
+    {
+        "name": "Freya",
+        "labels": {
+            "accent": "american",
+            "age": "young",
+            "gender": "female",
+            "description ": "overhyped",
+            "usecase": "video games"
+        }
+    },
+    {
+        "name": "Grace",
+        "labels": {
+            "accent": "american-southern",
+            "age": "young",
+            "gender": "female",
+            "use case": "audiobook ",
+            "description ": "gentle"
+        }
+    },
+    {
+        "name": "Daniel",
+        "labels": {
+            "accent": "british",
+            "description": "deep",
+            "age": "middle aged",
+            "gender": "male",
+            "use case": "news presenter"
+        }
+    },
+    {
+        "name": "Serena",
+        "labels": {
+            "accent": "american",
+            "description": "pleasant",
+            "age": "middle aged",
+            "gender": "female",
+            "use case": "interactive"
+        }
+    },
+    {
+        "name": "Adam",
+        "labels": {
+            "accent": "american",
+            "description": "deep",
+            "age": "middle aged",
+            "gender": "male",
+            "use case": "narration"
+        }
+    },
+    {
+        "name": "Nicole",
+        "labels": {
+            "accent": "american",
+            "description": "whisper",
+            "age": "young",
+            "gender": "female",
+            "use case": "audiobook"
+        }
+    },
+    {
+        "name": "Jessie",
+        "labels": {
+            "accent": "american",
+            "description": "raspy ",
+            "age": "old",
+            "gender": "male",
+            "use case": "video games"
+        }
+    },
+    {
+        "name": "Ryan ",
+        "labels": {
+            "age": "middle aged",
+            "description": "soldier",
+            "gender": "male",
+            "use case": "audiobook",
+            "accent ": "american"
+        }
+    },
+    {
+        "name": "Sam",
+        "labels": {
+            "accent": "american",
+            "description": "raspy",
+            "age": "young",
+            "gender": "male",
+            "use case": "narration"
+        }
+    },
+    {
+        "name": "Glinda",
+        "labels": {
+            "accent": "american",
+            "description": "witch",
+            "age": "middle aged",
+            "gender": "female",
+            "use case": "video games"
+        }
+    },
+    {
+        "name": "Giovanni",
+        "labels": {
+            "accent": "english-italian",
+            "description": "foreigner",
+            "age": "young",
+            "gender": "male",
+            "use case": "audiobook"
+        }
+    },
+    {
+        "name": "Mimi ",
+        "labels": {
+            "accent": "english-swedish",
+            "description": "childish",
+            "age": "young",
+            "gender": "female",
+            "use case": "animation"
+        }
+    }
+]
