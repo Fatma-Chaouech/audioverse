@@ -1,7 +1,7 @@
 # Environments
 .env
-myenv/*
+myenv
 
 # Byte-compiled / optimized / DLL files
-*/__pycache__/
-.vscode/.env
+__pycache__
+.vscode
