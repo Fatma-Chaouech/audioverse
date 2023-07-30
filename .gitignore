@@ -7,5 +7,5 @@ myenv
 *pycache*
 
 # generated files
-./voices/clone/*
-./voices/generated/*
+voices/clone
+voices/generated

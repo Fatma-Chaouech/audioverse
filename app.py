@@ -72,7 +72,9 @@ def preprare_ui():
 def run(filename, content, voice_name, description, files):
     index_name, vector_db, index = initialize_app()
     temp_dir = "./voices/generated"
+    clone_dir = "./voices/clone"
     create_directory_if_not_exists(temp_dir)
+    create_directory_if_not_exists(clone_dir)
 
     # generate sound effects embeddings
     if not vector_db.has_embeddings():
@@ -96,7 +98,7 @@ def run(filename, content, voice_name, description, files):
     else:
         filenames = []
         for idx, file_ in enumerate(files):
-            filenames.append("voices/clone/{}_{}".format(voice_name, idx))
+            filenames.append(clone_dir + "/{}_{}".format(voice_name, idx))
             with open(filenames[idx], "wb") as f:
                 f.write(file_.getbuffer())
         voice = clone(name=voice_name, description=description, files=filenames)
