@@ -1,19 +1,21 @@
 import os
-import re
-import time
 import pinecone
+import time
+import openai
+import streamlit as st
 from elevenlabs.api import Voices
 from audioverse.utils import (
     get_file_if_path_exists,
     save_dict_to_json,
-)
-from audioverse.utils import (
     read_txt_file,
     read_pdf_file,
     read_epub_file,
-    generate_embeddings,
 )
 
+def get_pinecone_index(index_name):
+    if index_name in pinecone.list_indexes():
+        return pinecone.Index(index_name)
+    return None
 
 def get_file_content(file):
     file_contents = None
@@ -37,6 +39,10 @@ def get_voices_info():
     return voice_types
 
 
+def change_cloning_state():
+    st.session_state.clone_voice = not st.session_state.clone_voice
+
+
 def get_sound_effects_embeddings(folder_path):
     files = os.listdir(folder_path)
     dimension = None
@@ -52,16 +58,22 @@ def get_sound_effects_embeddings(folder_path):
     return embedded_effects, dimension
 
 
-def get_pinecone_index(index_name):
-    if index_name in pinecone.list_indexes():
-        return pinecone.Index(index_name)
-    return None
+def query_model(prompt):
+    completion = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": prompt["system"]},
+            {"role": "user", "content": prompt["user"]},
+        ],
+        temperature=0.2,
+    )
+    return completion.choices[0].message["content"]
 
 
-def embeddings_to_pinecone(id_embeddings, index):
-    index.upsert(id_embeddings)
-
-def extract_sound_effects_from_text(text):
-    pattern = r"\[([^]]+)\]"
-    matches = re.findall(pattern, text)
-    return matches
+def generate_embeddings(input):
+    response = openai.Embedding.create(model="text-embedding-ada-002", input=input)
+    try:
+        embedding = response["data"][0]["embedding"]
+        return embedding
+    except KeyError:
+        print("Error: " + str(response["error"]))
