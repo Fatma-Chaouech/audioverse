@@ -34,8 +34,8 @@ def preprare_ui():
 
 def run(filename, content, name, description, files):
     load_dotenv()
+    openai.api_key = os.getenv("OPENAI_API_KEY")
     if not files:
-        openai.api_key = os.getenv("OPENAI_API_KEY")
         voice_types = get_voices_info()
         template = VoiceCategoryPrompt()
         voice = query_model(template(voice_types, content))

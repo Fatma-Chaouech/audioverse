@@ -1,1 +1,2 @@
 from .voice_category import VoiceCategoryPrompt
+from .sound_effects import SoundEffectsPrompt
