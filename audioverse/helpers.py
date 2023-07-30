@@ -61,7 +61,12 @@ def get_pinecone_index(index_name):
 def embeddings_to_pinecone(id_embeddings, index):
     index.upsert(id_embeddings)
 
+
 def extract_sound_effects_from_text(text):
     pattern = r"\[([^]]+)\]"
     matches = re.findall(pattern, text)
     return matches
+
+
+def input_to_chunks(input_text):
+    return [x.strip() for x in input_text.split("\n\n") if x.strip() != ""]
