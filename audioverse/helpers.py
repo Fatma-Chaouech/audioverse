@@ -13,12 +13,6 @@ from audioverse.utils import (
 )
 
 
-def get_pinecone_index(index_name):
-    if index_name in pinecone.list_indexes():
-        return pinecone.Index(index_name)
-    return None
-
-
 def get_file_content(file):
     file_contents = None
     if file is not None:
@@ -55,7 +49,7 @@ def get_sound_effects_embeddings(folder_path):
         embedded_effects.append((file_name, embedding))
         if not dimension:
             dimension = len(embedding)
-        time.sleep(15)
+        time.sleep(20)
         print("Processed: " + file_name)
     return embedded_effects, dimension
 
@@ -83,5 +77,8 @@ def generate_embeddings(input):
 
 def find_most_similar_effect(description, index):
     description_embedding = generate_embeddings(description)
-    results = index.query(vector=description_embedding, top_k=1)["matches"][0]
-    return results["id"]
+    results = index.query(vector=description_embedding, top_k=1)["matches"]
+    try:
+        return results[0]["id"]
+    except:
+        raise KeyError("No similar sound effect found. The results are: ", results)

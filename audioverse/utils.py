@@ -2,7 +2,7 @@ import json
 import os
 import re
 import shutil
-from moviepy.editor import concatenate_audioclips, AudioFileClip
+from moviepy.editor import concatenate_audioclips, AudioFileClip, CompositeAudioClip, afx
 from tika import parser
 from ebooklib import epub, ITEM_DOCUMENT
 
@@ -17,6 +17,11 @@ def get_file_if_path_exists(path):
         with open(path, "r") as f:
             return json.load(f)
     return None
+
+
+def create_directory_if_not_exists(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
 
 def read_txt_file(file):
@@ -73,7 +78,11 @@ def chunk_and_remove_sfx(text):
     return chunks_without_sfx
 
 
-def contruct_audiobook(input_dir):
+def normalize_volume(audio_clip):
+    return audio_clip.fx(afx.audio_normalize)
+
+
+def load_audio_files(input_dir):
     voice_files = sorted(
         [
             os.path.join(input_dir, f)
@@ -89,15 +98,32 @@ def contruct_audiobook(input_dir):
             if f.startswith("sfx")
         ]
     )
-    sfx_files = [AudioFileClip(x) for x in sfx_files]
-    clips = []
-    for i in range(len(voice_files)):
-        if i >= len(sfx_files):
-            clips.append(voice_files[i])
-        else:
-            clips.extend([voice_files[i], sfx_files[i]])
-    audiobook = concatenate_audioclips(clips)
+    # sfx_files = [AudioFileClip(x).volumex(0.5) for x in sfx_files]
+    sfx_files = [AudioFileClip(x).fx(normalize_volume).volumex(0.5) for x in sfx_files]
+    return voice_files, sfx_files
 
+
+def apply_sfx_to_voice(voice_files, sfx_files):
+    
+    audiobook_clips = []
+
+    for i, voice_segment in enumerate(voice_files):
+        audiobook_clips.append(voice_segment)
+
+        if i < len(sfx_files):
+            sound_effect = sfx_files[i]
+            overlap_duration = min(sound_effect.duration, 3.0)
+
+            # make the sfx start at the end of the voice segment
+            sound_effect = sound_effect.set_start(voice_segment.duration - overlap_duration)
+            audiobook_clips[-1] = CompositeAudioClip([audiobook_clips[-1], sound_effect])
+
+    return concatenate_audioclips(audiobook_clips)
+
+
+def contruct_audiobook(input_dir):
+    voice_files, sfx_files = load_audio_files(input_dir)
+    audiobook = apply_sfx_to_voice(voice_files, sfx_files)
     temp = os.path.join(input_dir, "final.mp3")
     audiobook.write_audiofile(temp, codec="mp3")
     with open(temp, "rb") as file:

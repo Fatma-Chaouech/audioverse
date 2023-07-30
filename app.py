@@ -14,6 +14,7 @@ from audioverse.utils import (
     clear_directory,
     contruct_audiobook,
     copy_file_with_new_name,
+    create_directory_if_not_exists,
     extract_sound_effects_from_text,
     input_to_chunks,
 )
@@ -23,7 +24,7 @@ from audioverse.helpers import (
     change_cloning_state,
     query_model,
     get_sound_effects_embeddings,
-    find_most_similar_effect
+    find_most_similar_effect,
 )
 
 
@@ -70,12 +71,14 @@ def preprare_ui():
 
 def run(filename, content, voice_name, description, files):
     index_name, vector_db, index = initialize_app()
-    temp_dir = './voices/generated'
+    temp_dir = "./voices/generated"
+    create_directory_if_not_exists(temp_dir)
 
     # generate sound effects embeddings
-    if not index:
+    if not vector_db.has_embeddings():
         embedded_effects, dimension = get_sound_effects_embeddings("./sounds")
-        index = vector_db.create_pinecone_index(index_name, dimension=dimension)
+        if not vector_db.has_index():
+            index = vector_db.create_pinecone_index(index_name, dimension=dimension)
         vector_db.embeddings_to_pinecone(embedded_effects, index)
 
     # split the book into paragraphs
@@ -103,7 +106,6 @@ def run(filename, content, voice_name, description, files):
 
     # for each paragraph
     for idx1, split in enumerate(split_book):
-
         # get the sound effects
         split_with_sfx = query_model(template(split))
         sound_effects = extract_sound_effects_from_text(split_with_sfx)
@@ -114,7 +116,6 @@ def run(filename, content, voice_name, description, files):
 
         # for each subparagraph
         for idx2, subparagraph in enumerate(refactored_split):
-
             # send the audio to elevenlabs
             audio = generate(subparagraph, voice=voice)
 
@@ -122,18 +123,19 @@ def run(filename, content, voice_name, description, files):
             save(audio=audio, filename=temp_dir + f"/voice{idx1}_{idx2}.mp3")
 
             # get the corresponding sound effect, if there still is one
-            print(f'{idx1}.{idx2}')
+            print(f"{idx1}.{idx2}")
             if idx2 < len(sound_effects):
                 similar_effect = find_most_similar_effect(sound_effects[idx2], index)
 
                 # store that sound effect
                 copy_file_with_new_name(
                     "./sounds",
-                    similar_effect + '.mp3',
+                    similar_effect + ".mp3",
                     temp_dir,
                     str(f"sfx{idx1}_{idx2}.mp3"),
                 )
-                time.sleep(15)
+                # sleep to avoid rate limit
+                time.sleep(20)
 
     audiobook = contruct_audiobook(temp_dir)
 
