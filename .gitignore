@@ -4,4 +4,4 @@ myenv/*
 
 # Byte-compiled / optimized / DLL files
 */__pycache__/
-.vscode/
+.vscode/.env
