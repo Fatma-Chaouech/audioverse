@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import shutil
 from tika import parser
 from ebooklib import epub, ITEM_DOCUMENT
 
@@ -33,6 +34,12 @@ def read_epub_file(file):
         if item.get_type() == ITEM_DOCUMENT:
             text += item.get_body_content().decode("utf-8")
     return text
+
+
+def copy_file_with_new_name(source_dir, source_filename, destination_dir, new_filename):
+    source_path = os.path.join(source_dir, source_filename)
+    destination_path = os.path.join(destination_dir, new_filename)
+    shutil.copy(source_path, destination_path)
 
 
 def extract_sound_effects_from_text(text):

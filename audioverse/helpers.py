@@ -53,7 +53,7 @@ def get_sound_effects_embeddings(folder_path):
         embedded_effects.append((file_name, embedding))
         if not dimension:
             dimension = len(embedding)
-        time.sleep(20)
+        time.sleep(15)
         print("Processed: " + file_name)
     return embedded_effects, dimension
 

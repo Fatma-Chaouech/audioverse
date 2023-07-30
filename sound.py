@@ -58,4 +58,4 @@ if __name__ == "__main__":
             print(
                 f"The most similar sound effect to '{sound_effect}' is: {similar_effect}"
             )
-            time.sleep(20)
+            time.sleep(15)
