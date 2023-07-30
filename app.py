@@ -4,8 +4,7 @@ import streamlit as st
 import openai
 from elevenlabs import generate, play, clone
 from audioverse.prompts import VoiceCategoryPrompt
-from audioverse.helpers import get_file_content, get_voices_info
-from audioverse.utils import query_model, change_cloning_state
+from audioverse.helpers import get_file_content, get_voices_info, change_cloning_state, query_model
 from audioverse.layout import welcome_layout, clone_section_layout
 
 

@@ -1,8 +1,7 @@
 import json
 import os
-import openai
+import re
 from tika import parser
-import streamlit as st
 from ebooklib import epub, ITEM_DOCUMENT
 
 
@@ -36,26 +35,26 @@ def read_epub_file(file):
     return text
 
 
-def change_cloning_state():
-    st.session_state.clone_voice = not st.session_state.clone_voice
+def extract_sound_effects_from_text(text):
+    pattern = r"\[([^]]+)\]"
+    matches = re.findall(pattern, text)
+    return matches
 
 
-def query_model(prompt):
-    completion = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": prompt["system"]},
-            {"role": "user", "content": prompt["user"]},
-        ],
-        temperature=0.2,
-    )
-    return completion.choices[0].message["content"]
+def input_to_chunks(input_text):
+    return [x.strip() for x in input_text.split("\n\n") if x.strip() != ""]
 
 
-def generate_embeddings(input):
-    response = openai.Embedding.create(model="text-embedding-ada-002", input=input)
-    try:
-        embedding = response["data"][0]["embedding"]
-        return embedding
-    except KeyError:
-        print("Error: " + str(response["error"]))
+def chunk_and_remove_sfx(text):
+    chunks_with_sfx = text.split("[")
+    chunks_without_sfx = []
+
+    for chunk_sfx in chunks_with_sfx:
+        index_closing_bracket = chunk_sfx.find("]")
+
+        if index_closing_bracket != -1:
+            chunks_without_sfx.append(chunk_sfx[index_closing_bracket + 1 :])
+        else:
+            chunks_without_sfx.append(chunk_sfx)
+
+    return chunks_without_sfx

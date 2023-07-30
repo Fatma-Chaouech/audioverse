@@ -1,24 +1,25 @@
-import pinecone
 import os
 import openai
 import time
-from dotenv import load_dotenv
-from audioverse.utils import generate_embeddings, query_model
-from audioverse.helpers import (
-    get_sound_effects_embeddings,
-    get_pinecone_index,
-    extract_sound_effects_from_text,
-    embeddings_to_pinecone,
-    input_to_chunks,
-)
 from audioverse.prompts import SoundEffectsPrompt
+from audioverse.vector_db.pinecone import PineconeVectorDB
+from audioverse.helpers import (
+    generate_embeddings,
+    get_sound_effects_embeddings,
+    query_model,
+)
+from audioverse.utils import (
+    extract_sound_effects_from_text,
+    input_to_chunks,
+    chunk_and_remove_sfx,
+)
 
 
 def initialize_api_keys():
-    load_dotenv()
     openai.api_key = os.getenv("OPENAI_API_KEY")
     pinecone_api_key = os.getenv("PINECONE_API_KEY")
-    pinecone.init(api_key=pinecone_api_key, environment="asia-southeast1-gcp-free")
+    pinecone_environment = os.getenv("PINECONE_ENVIRONMENT")
+    return pinecone_api_key, pinecone_environment
 
 
 def find_most_similar_effect(description, index):
@@ -30,13 +31,14 @@ def find_most_similar_effect(description, index):
 
 
 if __name__ == "__main__":
-    initialize_api_keys()
+    pinecone_api_key, pinecone_environment = initialize_api_keys()
     index_name = "sound-effects-index"
-    index = get_pinecone_index(index_name)
+    vector_db = PineconeVectorDB(pinecone_api_key, pinecone_environment)
+    index = vector_db.get_pinecone_index(index_name)
     if not index:
         embedded_effects, dimension = get_sound_effects_embeddings("./sounds")
-        index = pinecone.create_index(index_name, dimension=dimension)
-        embeddings_to_pinecone(embedded_effects, index)
+        index = vector_db.create_pinecone_index(index_name, dimension=dimension)
+        vector_db.embeddings_to_pinecone(embedded_effects, index)
 
     print("Preparing prompt...")
     book = """It was a rainy day. Alice was laying on her bed, when suddenly she heard craking noise. She looked out of the window and saw a tree falling down. She was scared and ran to her mother. Her mother told her that it was just a thunderstorm.\n\n
@@ -45,9 +47,10 @@ if __name__ == "__main__":
     split_book = input_to_chunks(book)
     template = SoundEffectsPrompt()
     for split in split_book:
-        refactored_split = query_model(template(split))
-        print("Refactored book: ", refactored_split)
-        sound_effects = extract_sound_effects_from_text(refactored_split)
+        split_with_sfx = query_model(template(split))
+        print("Refactored book: ", split_with_sfx)
+        sound_effects = extract_sound_effects_from_text(split_with_sfx)
+        refactored_split = chunk_and_remove_sfx(split_with_sfx)
         print("Extracted sound effects: ", sound_effects)
         for sound_effect in sound_effects:
             similar_effect = find_most_similar_effect(sound_effect, index)
