@@ -1,6 +1,7 @@
 import os
 import openai
 import time
+from dotenv import load_dotenv
 from audioverse.prompts import SoundEffectsPrompt
 from audioverse.vector_db.pinecone import PineconeVectorDB
 from audioverse.helpers import (
@@ -16,6 +17,7 @@ from audioverse.utils import (
 
 
 def initialize_api_keys():
+    load_dotenv()
     openai.api_key = os.getenv("OPENAI_API_KEY")
     pinecone_api_key = os.getenv("PINECONE_API_KEY")
     pinecone_environment = os.getenv("PINECONE_ENVIRONMENT")
