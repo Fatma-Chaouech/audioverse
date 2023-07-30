@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from audioverse.prompts import SoundEffectsPrompt
 from audioverse.vector_db.pinecone import PineconeVectorDB
 from audioverse.helpers import (
-    generate_embeddings,
+    find_most_similar_effect,
     get_sound_effects_embeddings,
     query_model,
 )
@@ -24,12 +24,8 @@ def initialize_api_keys():
     return pinecone_api_key, pinecone_environment
 
 
-def find_most_similar_effect(description, index):
-    description_embedding = generate_embeddings(description)
-    results = index.query(vector=description_embedding, top_k=1)["matches"][0]
-    if results["score"] >= 0.8:
-        return results["id"]
-    return None
+
+    
 
 
 if __name__ == "__main__":
@@ -56,8 +52,7 @@ if __name__ == "__main__":
         print("Extracted sound effects: ", sound_effects)
         for sound_effect in sound_effects:
             similar_effect = find_most_similar_effect(sound_effect, index)
-            if similar_effect:
-                print(
-                    f"The most similar sound effect to '{sound_effect}' is: {similar_effect}"
-                )
-                time.sleep(20)
+            print(
+                f"The most similar sound effect to '{sound_effect}' is: {similar_effect}"
+            )
+            time.sleep(15)

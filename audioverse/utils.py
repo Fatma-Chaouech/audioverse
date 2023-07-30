@@ -1,6 +1,8 @@
 import json
 import os
 import re
+import shutil
+from moviepy.editor import concatenate_audioclips, AudioFileClip
 from tika import parser
 from ebooklib import epub, ITEM_DOCUMENT
 
@@ -35,6 +37,17 @@ def read_epub_file(file):
     return text
 
 
+def copy_file_with_new_name(source_dir, source_filename, destination_dir, new_filename):
+    source_path = os.path.join(source_dir, source_filename)
+    destination_path = os.path.join(destination_dir, new_filename)
+    shutil.copy(source_path, destination_path)
+
+
+def clear_directory(directory):
+    for filename in os.listdir(directory):
+        os.remove(os.path.join(directory, filename))
+
+
 def extract_sound_effects_from_text(text):
     pattern = r"\[([^]]+)\]"
     matches = re.findall(pattern, text)
@@ -58,3 +71,35 @@ def chunk_and_remove_sfx(text):
             chunks_without_sfx.append(chunk_sfx)
 
     return chunks_without_sfx
+
+
+def contruct_audiobook(input_dir):
+    voice_files = sorted(
+        [
+            os.path.join(input_dir, f)
+            for f in os.listdir(input_dir)
+            if f.startswith("voice")
+        ]
+    )
+    voice_files = [AudioFileClip(x) for x in voice_files]
+    sfx_files = sorted(
+        [
+            os.path.join(input_dir, f)
+            for f in os.listdir(input_dir)
+            if f.startswith("sfx")
+        ]
+    )
+    sfx_files = [AudioFileClip(x) for x in sfx_files]
+    clips = []
+    for i in range(len(voice_files)):
+        if i >= len(sfx_files):
+            clips.append(voice_files[i])
+        else:
+            clips.extend([voice_files[i], sfx_files[i]])
+    audiobook = concatenate_audioclips(clips)
+
+    temp = os.path.join(input_dir, "final.mp3")
+    audiobook.write_audiofile(temp, codec="mp3")
+    with open(temp, "rb") as file:
+        audio_bytes = file.read()
+    return audio_bytes
