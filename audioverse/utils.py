@@ -38,7 +38,8 @@ def read_epub_file(file):
 
 def change_cloning_state():
     st.session_state.clone_voice = not st.session_state.clone_voice
-    
+
+
 def query_model(prompt):
     completion = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
@@ -49,3 +50,12 @@ def query_model(prompt):
         temperature=0.2,
     )
     return completion.choices[0].message["content"]
+
+
+def generate_embeddings(input):
+    response = openai.Embedding.create(model="text-embedding-ada-002", input=input)
+    try:
+        embedding = response["data"][0]["embedding"]
+        return embedding
+    except KeyError:
+        print("Error: " + str(response["error"]))
