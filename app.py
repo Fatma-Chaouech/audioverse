@@ -7,22 +7,24 @@ import openai
 from elevenlabs import generate, play, clone, save
 from audioverse.prompts import VoiceCategoryPrompt
 from audioverse.prompts.sound_effects import SoundEffectsPrompt
+from audioverse.layout import welcome_layout, clone_section_layout
+from audioverse.vector_db.pinecone import PineconeVectorDB
 from audioverse.utils import (
     chunk_and_remove_sfx,
+    clear_directory,
+    contruct_audiobook,
     copy_file_with_new_name,
     extract_sound_effects_from_text,
     input_to_chunks,
 )
-from audioverse.vector_db.pinecone import PineconeVectorDB
 from audioverse.helpers import (
     get_file_content,
     get_voices_info,
     change_cloning_state,
     query_model,
     get_sound_effects_embeddings,
+    find_most_similar_effect
 )
-from audioverse.layout import welcome_layout, clone_section_layout
-from sound import find_most_similar_effect
 
 
 def initialize_app():
@@ -68,6 +70,7 @@ def preprare_ui():
 
 def run(filename, content, voice_name, description, files):
     index_name, vector_db, index = initialize_app()
+    temp_dir = './voices/generated'
 
     # generate sound effects embeddings
     if not index:
@@ -90,7 +93,7 @@ def run(filename, content, voice_name, description, files):
     else:
         filenames = []
         for idx, file_ in enumerate(files):
-            filenames.append("voices/{}_{}".format(voice_name, idx))
+            filenames.append("voices/clone/{}_{}".format(voice_name, idx))
             with open(filenames[idx], "wb") as f:
                 f.write(file_.getbuffer())
         voice = clone(name=voice_name, description=description, files=filenames)
@@ -98,9 +101,9 @@ def run(filename, content, voice_name, description, files):
     # prepare the sound effects template
     template = SoundEffectsPrompt()
 
-    audiobook = []
     # for each paragraph
     for idx1, split in enumerate(split_book):
+
         # get the sound effects
         split_with_sfx = query_model(template(split))
         sound_effects = extract_sound_effects_from_text(split_with_sfx)
@@ -111,29 +114,35 @@ def run(filename, content, voice_name, description, files):
 
         # for each subparagraph
         for idx2, subparagraph in enumerate(refactored_split):
+
             # send the audio to elevenlabs
             audio = generate(subparagraph, voice=voice)
+
             # store it
-            save(audio=audio, filename=f"./voices/generated/voice{idx1}.{idx2}.mp3")
+            save(audio=audio, filename=temp_dir + f"/voice{idx1}_{idx2}.mp3")
+
             # get the corresponding sound effect, if there still is one
             print(f'{idx1}.{idx2}')
             if idx2 < len(sound_effects):
                 similar_effect = find_most_similar_effect(sound_effects[idx2], index)
+
                 # store that sound effect
                 copy_file_with_new_name(
                     "./sounds",
                     similar_effect + '.mp3',
-                    "./voices/generated",
-                    similar_effect + str(f"{idx1}.{idx2}.mp3"),
+                    temp_dir,
+                    str(f"sfx{idx1}_{idx2}.mp3"),
                 )
                 time.sleep(15)
 
-    # audio = generate(content, voice=voice)
-    # print("Audio generation...")
-    # play(audio)
-    # st.download_button(
-    #     label="Save Audiobook", data=audio, file_name=filename, mime="audio/mp3"
-    # )
+    audiobook = contruct_audiobook(temp_dir)
+
+    print("Audio generation...")
+    play(audiobook)
+    clear_directory(temp_dir)
+    st.download_button(
+        label="Save Audiobook", data=audiobook, file_name=filename, mime="audio/mp3"
+    )
 
 
 if __name__ == "__main__":

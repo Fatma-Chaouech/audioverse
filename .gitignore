@@ -5,3 +5,7 @@ myenv
 # Byte-compiled / optimized / DLL files
 .vscode
 *pycache*
+
+# generated files
+./voices/clone/*
+./voices/generated/*
