@@ -142,7 +142,7 @@ def run(filename, content, voice_name, description, files):
     audiobook = contruct_audiobook(temp_dir)
 
     print("Audio generation...")
-    play(audiobook)
+    # play(audiobook)
     clear_directory(temp_dir)
     st.download_button(
         label="Save Audiobook", data=audiobook, file_name=filename, mime="audio/mp3"
