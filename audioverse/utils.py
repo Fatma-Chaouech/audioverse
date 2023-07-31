@@ -99,8 +99,7 @@ def load_audio_files(input_dir):
             if f.startswith("sfx")
         ]
     )
-    # sfx_files = [AudioFileClip(x).volumex(0.5) for x in sfx_files]
-    sfx_files = [AudioFileClip(x).fx(normalize_volume).volumex(0.2) for x in sfx_files]
+    sfx_files = [AudioFileClip(x).fx(normalize_volume).volumex(0.3) for x in sfx_files]
     return voice_files, sfx_files
 
 
@@ -117,6 +116,8 @@ def apply_sfx_to_voice(voice_files, sfx_files):
 
             # make the sfx start at the end of the voice segment
             sound_effect = sound_effect.set_start(voice_segment.duration - overlap_duration)
+            sound_effect = sound_effect.fx(afx.audio_fadein, overlap_duration // 2)
+            sound_effect = sound_effect.fx(afx.audio_fadeout, overlap_duration // 2)
             audiobook_clips[-1] = CompositeAudioClip([audiobook_clips[-1], sound_effect])
 
     return concatenate_audioclips(audiobook_clips)

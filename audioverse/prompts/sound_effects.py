@@ -4,7 +4,7 @@ class SoundEffectsPrompt:
         As an audiobook creator, your task is to enhance a book by inserting sound effects at appropriate moments. 
         Your job is to identify the moments where sound effects should be placed and insert the corresponding sound effects enclosed in square brackets '[]', without altering any words in the given text. 
         The sound effects should be carefully positioned just after the expression of the sound in the text.
-        These sound effects should be comprehensible even when taken out of context.
+        These sound effects should be comprehensible even when taken out of context. They should be presented in the form of a noun and verb, such as "baby crying" or "door slamming."
         However, it's crucial to note that the sound effects should only represent background sounds. 
         These background sounds are the subtle audio cues that add depth and atmosphere to the audiobook without interfering with the narration or dialogue."""
         self.user = """
