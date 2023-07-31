@@ -43,6 +43,7 @@ def read_epub_file(file):
 
 
 def copy_file_with_new_name(source_dir, source_filename, destination_dir, new_filename):
+    source_filename = source_filename.replace(" ", "_")
     source_path = os.path.join(source_dir, source_filename)
     destination_path = os.path.join(destination_dir, new_filename)
     shutil.copy(source_path, destination_path)
@@ -90,7 +91,7 @@ def load_audio_files(input_dir):
             if f.startswith("voice")
         ]
     )
-    voice_files = [AudioFileClip(x) for x in voice_files]
+    voice_files = [AudioFileClip(x).fx(normalize_volume) for x in voice_files]
     sfx_files = sorted(
         [
             os.path.join(input_dir, f)
@@ -99,7 +100,7 @@ def load_audio_files(input_dir):
         ]
     )
     # sfx_files = [AudioFileClip(x).volumex(0.5) for x in sfx_files]
-    sfx_files = [AudioFileClip(x).fx(normalize_volume).volumex(0.5) for x in sfx_files]
+    sfx_files = [AudioFileClip(x).fx(normalize_volume).volumex(0.2) for x in sfx_files]
     return voice_files, sfx_files
 
 

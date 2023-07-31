@@ -44,7 +44,7 @@ def get_sound_effects_embeddings(folder_path):
     dimension = None
     embedded_effects = []
     for file in files:
-        file_name = os.path.splitext(file)[0]
+        file_name = ' '.join(os.path.splitext(file)[0].split('_'))
         embedding = generate_embeddings(file_name)
         embedded_effects.append((file_name, embedding))
         if not dimension:
