@@ -9,10 +9,10 @@ from audioverse.prompts import VoiceCategoryPrompt
 from audioverse.prompts.sound_effects import SoundEffectsPrompt
 from audioverse.layout import welcome_layout, clone_section_layout
 from audioverse.vector_db.pinecone import PineconeVectorDB
+from audioverse.audio.audio import contruct_audiobook
 from audioverse.utils import (
     chunk_and_remove_sfx,
     clear_directory,
-    contruct_audiobook,
     copy_file_with_new_name,
     create_directory_if_not_exists,
     extract_sound_effects_from_text,
@@ -115,7 +115,7 @@ def run(filename, content, voice_name, description, files):
 
         # split the paragraph by the sound effect, and remove them
         refactored_split = chunk_and_remove_sfx(split_with_sfx)
-
+        
         # for each subparagraph
         for idx2, subparagraph in enumerate(refactored_split):
             # send the audio to elevenlabs
