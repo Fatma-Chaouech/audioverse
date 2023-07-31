@@ -1,6 +1,6 @@
 # Environments
 .env
-myenv
+env
 
 # Byte-compiled / optimized / DLL files
 .vscode

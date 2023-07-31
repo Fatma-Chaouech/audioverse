@@ -37,7 +37,6 @@ matplotlib-inline==0.1.6
 mdurl==0.1.2
 moviepy==1.0.3
 multidict==6.0.4
-nest-simulator==3.4
 numpy==1.25.1
 openai==0.27.8
 packaging==23.1
