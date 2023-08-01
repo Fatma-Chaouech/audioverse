@@ -113,9 +113,7 @@ def run(filename, content, voice_name, description, files):
 
         # for each paragraph
         ## changed split_book to content here
-    with st.spinner(
-        "Generating audio... This may take a while because of OpenAI's rate limit."
-    ):
+    with st.spinner("Generating audio... This may take a while."):
         # get the sound effects
         split_with_sfx = query_model(template(content))
         sound_effects = extract_sound_effects_from_text(split_with_sfx)
@@ -128,11 +126,6 @@ def run(filename, content, voice_name, description, files):
         progress_bar = st.progress(0, text="Audio 0/{}".format(len(refactored_split)))
         # for each subparagraph
         for idx2, subparagraph in enumerate(refactored_split):
-            progress_bar.progress(
-                (idx2 + 1) / len(refactored_split),
-                text="Audio {}/{}".format(idx2 + 1, len(refactored_split)),
-            )
-
             # send the audio to elevenlabs
             audio = generate(subparagraph, voice=voice)
 
@@ -162,8 +155,14 @@ def run(filename, content, voice_name, description, files):
                         temp_dir,
                         str(f"sfx{0}_{idx2}.mp3"),
                     )
-                # sleep to avoid rate limit
-                time.sleep(20)
+                if idx2 != len(refactored_split) - 1:
+                    # sleep to avoid rate limit
+                    time.sleep(20)
+                    
+            progress_bar.progress(
+                (idx2 + 1) / len(refactored_split),
+                text="Audio {}/{}".format(idx2 + 1, len(refactored_split)),
+            )
 
     with st.spinner("Constructing the audiobook..."):
         audiobook = contruct_audiobook(temp_dir)
