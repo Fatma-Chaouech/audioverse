@@ -74,82 +74,100 @@ def preprare_ui():
 
 
 def run(filename, content, voice_name, description, files):
-    index_name, vector_db, index = initialize_app()
-    temp_dir = "./voices/generated"
-    clone_dir = "./voices/clone"
-    create_directory_if_not_exists(temp_dir)
-    create_directory_if_not_exists(clone_dir)
+    with st.spinner("Processing..."):
+        index_name, vector_db, index = initialize_app()
+        temp_dir = "./voices/generated"
+        clone_dir = "./voices/clone"
+        create_directory_if_not_exists(temp_dir)
+        create_directory_if_not_exists(clone_dir)
 
-    # generate sound effects embeddings
-    if not vector_db.has_embeddings():
-        embedded_effects, dimension = get_sound_effects_embeddings("./sounds")
-        if not vector_db.has_index():
-            index = vector_db.create_pinecone_index(index_name, dimension=dimension)
-        vector_db.embeddings_to_pinecone(embedded_effects, index)
+        # generate sound effects embeddings
+        if not vector_db.has_embeddings():
+            embedded_effects, dimension = get_sound_effects_embeddings("./sounds")
+            if not vector_db.has_index():
+                index = vector_db.create_pinecone_index(index_name, dimension=dimension)
+            vector_db.embeddings_to_pinecone(embedded_effects, index)
 
-    # split the book into paragraphs
-    split_book = input_to_chunks(content)
+        # split the book into paragraphs
+        split_book = input_to_chunks(content)
 
-    # choose voice based on random excerpt, if cloning is not selected
-    excerpt_book = split_book[random.randint(0, len(split_book) - 1)]
-    if not files:
-        voice_types = get_voices_info()
-        template = VoiceCategoryPrompt()
-        voice = query_model(template(voice_types, excerpt_book))
-        print("GPT has chosen {} for the voice actor...".format(voice))
+        # choose voice based on random excerpt, if cloning is not selected
+        excerpt_book = split_book[random.randint(0, len(split_book) - 1)]
+        if not files:
+            voice_types = get_voices_info()
+            template = VoiceCategoryPrompt()
+            voice = query_model(template(voice_types, excerpt_book))
+            print("GPT has chosen {} for the voice actor...".format(voice))
 
-    # get the voice, if cloning is selected
-    else:
-        filenames = []
-        for idx, file_ in enumerate(files):
-            filenames.append(clone_dir + "/{}_{}".format(voice_name, idx))
-            with open(filenames[idx], "wb") as f:
-                f.write(file_.getbuffer())
-        voice = clone(name=voice_name, description=description, files=filenames)
+        # get the voice, if cloning is selected
+        else:
+            filenames = []
+            for idx, file_ in enumerate(files):
+                filenames.append(clone_dir + "/{}_{}".format(voice_name, idx))
+                with open(filenames[idx], "wb") as f:
+                    f.write(file_.getbuffer())
+            voice = clone(name=voice_name, description=description, files=filenames)
 
-    # prepare the sound effects template
-    template = SoundEffectsPrompt()
+        # prepare the sound effects template
+        template = SoundEffectsPrompt()
 
-    # for each paragraph
-    for idx1, split in enumerate(split_book):
+        # for each paragraph
+        ## changed split_book to content here
+    with st.spinner("Generating audio... This may take a while because of OpenAI's rate limit."):
         # get the sound effects
-        split_with_sfx = query_model(template(split))
+        split_with_sfx = query_model(template(content))
         sound_effects = extract_sound_effects_from_text(split_with_sfx)
         print("Extracted sound effects: ", sound_effects)
+        st.toast("Extracted sound effects!", icon="🎉")
 
         # split the paragraph by the sound effect, and remove them
         refactored_split = chunk_and_remove_sfx(split_with_sfx)
-        
+
+        progress_bar = st.progress(0, text="Audio 0/{}".format(len(refactored_split)))
         # for each subparagraph
         for idx2, subparagraph in enumerate(refactored_split):
+
+            progress_bar.progress((idx2 + 1) / len(refactored_split), text="Audio {}/{}".format(idx2 + 1, len(refactored_split)))
+
             # send the audio to elevenlabs
             audio = generate(subparagraph, voice=voice)
 
             # store it
-            save(audio=audio, filename=temp_dir + f"/voice{idx1}_{idx2}.mp3")
+            save(audio=audio, filename=temp_dir + f"/voice{0}_{idx2}.mp3")
 
             # get the corresponding sound effect, if there still is one
-            print(f"{idx1}.{idx2}")
+            print(f"{idx2}")
+            if len(sound_effects) == 0:
+                time.sleep(20)
+
             if idx2 < len(sound_effects):
-                similar_effect = find_most_similar_effect(sound_effects[idx2], index)
+                similar_effect = find_most_similar_effect(
+                    sound_effects[idx2], index
+                )
 
                 # store that sound effect
                 copy_file_with_new_name(
                     "./sounds",
                     similar_effect + ".mp3",
                     temp_dir,
-                    str(f"sfx{idx1}_{idx2}.mp3"),
+                    str(f"sfx{0}_{idx2}.mp3"),
                 )
                 # sleep to avoid rate limit
                 time.sleep(20)
 
-    audiobook = contruct_audiobook(temp_dir)
+    with st.spinner("Constructing the audiobook..."):
+        audiobook = contruct_audiobook(temp_dir)
 
     print("Audio generation...")
+    st.toast("Audiobook generated!", icon="🎉")
+    st.balloons()
     # play(audiobook)
     clear_directory(temp_dir)
     st.download_button(
-        label="Save Audiobook", data=audiobook, file_name=filename, mime="audio/mp3"
+        label="Save Audiobook",
+        data=audiobook,
+        file_name=filename,
+        mime="audio/mp3",
     )
 
 
