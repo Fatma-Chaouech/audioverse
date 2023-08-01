@@ -172,4 +172,7 @@ def run(filename, content, voice_name, description, files):
 
 
 if __name__ == "__main__":
-    preprare_ui()
+    try:
+        preprare_ui()
+    except:
+        clear_directory("./voices/generated")

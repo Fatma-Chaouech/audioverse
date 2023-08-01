@@ -49,8 +49,9 @@ def copy_file_with_new_name(source_dir, source_filename, destination_dir, new_fi
 
 
 def clear_directory(directory):
-    for filename in os.listdir(directory):
-        os.remove(os.path.join(directory, filename))
+    if os.path.exists(directory):
+        for filename in os.listdir(directory):
+            os.remove(os.path.join(directory, filename))
 
 
 def extract_sound_effects_from_text(text):
