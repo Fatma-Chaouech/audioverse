@@ -5,3 +5,4 @@ openai==0.27.8
 python-dotenv==1.0.0
 streamlit==1.25.0
 tika==2.6.0
+pinecone-client==2.2.2
