@@ -14,16 +14,19 @@ from audioverse.utils import (
 
 
 def get_file_content(file):
-    file_contents = None
-    if file is not None:
-        file_type = file.type
-        if "text" in file_type:
-            file_contents = read_txt_file(file)
-        elif "pdf" in file_type:
-            file_contents = read_pdf_file(file)
-        elif "epub" in file_type:
-            file_contents = read_epub_file(file)
-    return file_contents
+    try:
+        file_contents = None
+        if file is not None:
+            file_type = file.type
+            if "text" in file_type:
+                file_contents = read_txt_file(file)
+            elif "pdf" in file_type:
+                file_contents = read_pdf_file(file)
+            elif "epub" in file_type:
+                file_contents = read_epub_file(file)
+        return file_contents
+    except:
+        return None
 
 
 def get_voices_info():
