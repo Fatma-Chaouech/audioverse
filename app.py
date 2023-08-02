@@ -176,7 +176,7 @@ def run(filename, content, voice_name, description, files):
     st.download_button(
         label="Save Audiobook",
         data=audiobook,
-        file_name=filename,
+        file_name=audiobook,
         mime="audio/mp3",
     )
 
