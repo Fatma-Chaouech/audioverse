@@ -4,7 +4,7 @@ import time
 from dotenv import load_dotenv
 import streamlit as st
 import openai
-from elevenlabs import generate, play, clone, save
+from elevenlabs import generate, play, clone, save, voices
 from audioverse.prompts import VoiceCategoryPrompt
 from audioverse.prompts.sound_effects import SoundEffectsPrompt
 from audioverse.layout import welcome_layout, clone_section_layout
@@ -19,6 +19,7 @@ from audioverse.utils import (
     input_to_chunks,
 )
 from audioverse.helpers import (
+    delete_voice,
     get_file_content,
     get_voices_info,
     change_cloning_state,
@@ -92,12 +93,13 @@ def run(filename, content, voice_name, description, files):
                 index = vector_db.create_pinecone_index(index_name, dimension=dimension)
             vector_db.embeddings_to_pinecone(embedded_effects, index)
 
-        # split the book into paragraphs
-        split_book = input_to_chunks(content)
-
-        # choose voice based on random excerpt, if cloning is not selected
-        excerpt_book = split_book[random.randint(0, len(split_book) - 1)]
+        # if cloning is not selected
         if not files:
+            # split the book into paragraphs
+            split_book = input_to_chunks(content)
+
+            # choose voice based on random excerpt
+            excerpt_book = split_book[random.randint(0, len(split_book) - 1)]
             voice_types = get_voices_info()
             template = VoiceCategoryPrompt()
             voice = query_model(template(voice_types, excerpt_book))
@@ -176,6 +178,11 @@ def run(filename, content, voice_name, description, files):
     st.balloons()
     # play(audiobook)
     clear_directory(temp_dir)
+
+    # if cloning is selected, delete the cloned voice 
+    if files:
+        delete_voice(voice)
+
     st.download_button(
         label="Save Audiobook",
         data=audiobook,

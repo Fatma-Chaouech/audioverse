@@ -42,12 +42,16 @@ def change_cloning_state():
     st.session_state.clone_voice = not st.session_state.clone_voice
 
 
+def delete_voice(voice):
+    voice.delete()
+
+
 def get_sound_effects_embeddings(folder_path):
     files = os.listdir(folder_path)
     dimension = None
     embedded_effects = []
     for file in files:
-        file_name = ' '.join(os.path.splitext(file)[0].split('_'))
+        file_name = " ".join(os.path.splitext(file)[0].split("_"))
         embedding = generate_embeddings(file_name)
         embedded_effects.append((file_name, embedding))
         if not dimension:
