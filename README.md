@@ -3,6 +3,18 @@ Are you tired of reading books the traditional way? 😩 Experience a whole new 
 
 Join the auditory adventure now! 🚀🎶 AudioVerse: Breathe Life Into Your Books! 📚💨
 
+## Features
+* Convert books to audiobooks with a single click
+* Smart voice selection for the perfect narration
+* Personalized voice cloning for a unique listening experience
+* Automatic integration of sound effects for immersive storytelling
+
+## Technologies
+* ElevenLabs
+* OpenAI
+* Streamlit
+* Pinecone
+
 ## Usage
 1. Clone the repository
     ```
@@ -32,8 +44,3 @@ Join the auditory adventure now! 🚀🎶 AudioVerse: Breathe Life Into Your Boo
    sudo apt install ffmpeg
    ```
 7. Create a .env file (see the [.env.template](./.env.template))
-   
-### Technologies
-* ElevenLabs
-* OpenAI
-* Streamlit
