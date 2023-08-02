@@ -47,9 +47,7 @@ def initialize_api_keys():
 def preprare_ui():
     st.session_state.clone_voice = False
     welcome_layout()
-    uploaded_file = st.file_uploader(
-        "Upload your book", type=["txt", "pdf"], key="file_uploader"
-    )
+    uploaded_file = st.file_uploader("Upload your book", type=["txt", "pdf"])
 
     clone_voice = st.checkbox(
         "Clone Voice", key="clone_checkbox", on_change=change_cloning_state
@@ -59,7 +57,12 @@ def preprare_ui():
     else:
         voice_name, description, files = None, None, None
 
-    if st.button("Upload Book", type="primary", use_container_width=True):
+    if st.button(
+        "Upload Book",
+        type="primary",
+        use_container_width=True,
+        disabled=uploaded_file is None,
+    ):
         content = get_file_content(uploaded_file)
         if content:
             run(
@@ -74,7 +77,7 @@ def preprare_ui():
 
 
 def run(filename, content, voice_name, description, files):
-    audio_filename = filename.replace(' ', '_').split(".")[0] + ".mp3"
+    audio_filename = filename.replace(" ", "_").split(".")[0] + ".mp3"
     with st.spinner("Processing..."):
         index_name, vector_db, index = initialize_app()
         temp_dir = "./voices/generated"
@@ -114,7 +117,6 @@ def run(filename, content, voice_name, description, files):
 
         # for each paragraph
     with st.spinner("Generating audio... This may take a while."):
-
         # get the sound effects
         split_with_sfx = query_model(template(content))
         sound_effects = extract_sound_effects_from_text(split_with_sfx)
@@ -123,12 +125,11 @@ def run(filename, content, voice_name, description, files):
 
         # split the paragraph by the sound effect, and remove them
         sfx_split = chunk_and_remove_sfx(split_with_sfx)
-        
+
         progress_bar = st.progress(0, text="Audio 0/{}".format(len(sfx_split)))
-        
+
         # for each subparagraph
         for idx2, subparagraph in enumerate(sfx_split):
-
             # send the audio to elevenlabs
             audio = generate(subparagraph, voice=voice)
 
@@ -161,12 +162,11 @@ def run(filename, content, voice_name, description, files):
                 if idx2 != len(sfx_split) - 1:
                     # sleep to avoid rate limit
                     time.sleep(20)
-            
+
             progress_bar.progress(
                 (idx2 + 1) / len(sfx_split),
                 text="Audio {}/{}".format(idx2 + 1, len(sfx_split)),
             )
-
 
     with st.spinner("Constructing the audiobook..."):
         audiobook = contruct_audiobook(temp_dir)
