@@ -2,6 +2,13 @@ import os
 from moviepy.editor import AudioFileClip, CompositeAudioClip, afx
 
 
+def audio_normalize(clip):
+    mv = clip.max_volume()
+    if mv > 0:
+        return afx.volumex(clip, 1 / mv)
+    return clip
+
+
 def load_audio_files(input_dir):
     voice_files = sorted(
         [
@@ -38,12 +45,12 @@ def load_audio_files(input_dir):
         else:
             sfx_adapted_files.append(None)
 
-    voice_files = [AudioFileClip(x).fx(afx.audio_normalize) for x in voice_files]
+    voice_files = [AudioFileClip(x).fx(audio_normalize) for x in voice_files]
 
     for i, x in enumerate(sfx_adapted_files):
         if x is not None:
             sfx_adapted_files[i] = (
-                AudioFileClip(x).fx(afx.audio_normalize).fx(afx.volumex, 0.1)
+                AudioFileClip(x).fx(audio_normalize).fx(afx.volumex, 0.1)
             )
 
     return voice_files, sfx_adapted_files
