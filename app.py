@@ -122,7 +122,7 @@ def run(filename, content, voice_name, description, files):
 
         # split the paragraph by the sound effect, and remove them
         refactored_split = chunk_and_remove_sfx(split_with_sfx)
-
+        
         progress_bar = st.progress(0, text="Audio 0/{}".format(len(refactored_split)))
         # for each subparagraph
         for idx2, subparagraph in enumerate(refactored_split):
@@ -158,11 +158,12 @@ def run(filename, content, voice_name, description, files):
                 if idx2 != len(refactored_split) - 1:
                     # sleep to avoid rate limit
                     time.sleep(20)
-                    
+            
             progress_bar.progress(
                 (idx2 + 1) / len(refactored_split),
                 text="Audio {}/{}".format(idx2 + 1, len(refactored_split)),
             )
+
 
     with st.spinner("Constructing the audiobook..."):
         audiobook = contruct_audiobook(temp_dir)
@@ -183,5 +184,6 @@ def run(filename, content, voice_name, description, files):
 if __name__ == "__main__":
     try:
         preprare_ui()
-    except:
+    except Exception as e:
+        st.error(e)
         clear_directory("./voices/generated")
