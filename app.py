@@ -74,6 +74,7 @@ def preprare_ui():
 
 
 def run(filename, content, voice_name, description, files):
+    audio_filename = filename.split(".")[0] + ".mp3"
     with st.spinner("Processing..."):
         index_name, vector_db, index = initialize_app()
         temp_dir = "./voices/generated"
@@ -176,7 +177,7 @@ def run(filename, content, voice_name, description, files):
     st.download_button(
         label="Save Audiobook",
         data=audiobook,
-        file_name=filename,
+        file_name=audio_filename,
         mime="audio/mp3",
     )
 
