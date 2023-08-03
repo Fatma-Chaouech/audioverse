@@ -17,6 +17,9 @@ Join the auditory adventure now! 🚀🎶 AudioVerse: Breathe Life Into Your Boo
 * Streamlit
 * Pinecone
 
+## Architecture
+![architecture](docs/architecture.png)
+
 ## Demo
 ![demo](https://github.com/Fatma-Chaouech/audioverse/assets/69005550/3d25a540-393d-4a3e-b799-a8d9826c74b9)
 
