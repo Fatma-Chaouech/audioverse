@@ -1,11 +1,12 @@
 # AudioVerse
-Are you tired of reading books the traditional way? 😩 Experience a whole new world of literary immersion with AudioVerse! 🎧📚 AudioVerse allows you to effortlessly transform any written material into captivating audiobooks, complete with customizable language, cloned voices, and exciting sound effects. 🌟🎙️💥
+![cover](./docs/cover.jpeg)
+Are you tired of reading books the traditional way? 😩 Experience a whole new world of literary immersion with [AudioVerse](https://audioverse.streamlit.app/)! 🎧📚 AudioVerse allows you to effortlessly transform any written material into captivating audiobooks, complete with customizable language, cloned voices, and exciting sound effects. 🌟🎙️💥
 
 Join the auditory adventure now! 🚀🎶 AudioVerse: Breathe Life Into Your Books! 📚💨
 
 ## Features
 * Convert books to audiobooks with a single click
-* Smart voice selection for the perfect narration
+* Automatic voice selection for the perfect narration
 * Personalized voice cloning for a unique listening experience
 * Automatic integration of sound effects for immersive storytelling
 
@@ -14,6 +15,9 @@ Join the auditory adventure now! 🚀🎶 AudioVerse: Breathe Life Into Your Boo
 * OpenAI
 * Streamlit
 * Pinecone
+
+## Demo
+https://github.com/Fatma-Chaouech/audioverse/assets/69005550/3d25a540-393d-4a3e-b799-a8d9826c74b9
 
 ## Usage
 1. Clone the repository
