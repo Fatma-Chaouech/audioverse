@@ -5,7 +5,7 @@ Join the auditory adventure now! 🚀🎶 AudioVerse: Breathe Life Into Your Boo
 
 ## Features
 * Convert books to audiobooks with a single click
-* Smart voice selection for the perfect narration
+* Automatic voice selection for the perfect narration
 * Personalized voice cloning for a unique listening experience
 * Automatic integration of sound effects for immersive storytelling
 
@@ -14,6 +14,9 @@ Join the auditory adventure now! 🚀🎶 AudioVerse: Breathe Life Into Your Boo
 * OpenAI
 * Streamlit
 * Pinecone
+
+## Demo
+Uploading demo.mp4…
 
 ## Usage
 1. Clone the repository
