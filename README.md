@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/github/license/Fatma-Chaouech/audioverse)](https://github.com/Fatma-Chaouech/audioverse/blob/main/LICENSE)
 [![Issues](https://img.shields.io/github/issues/Fatma-Chaouech/audioverse)](https://github.com/Fatma-Chaouech/audioverse/issues)
 
-![cover](./docs/long_cover.png)
+![cover](./docs/cover.png)
 
 Are you tired of reading books the traditional way? 😩 Experience a whole new world of literary immersion with [AudioVerse](https://audioverse.streamlit.app/)! 🎧📚 AudioVerse allows you to effortlessly transform any written material into captivating audiobooks, complete with customizable language, cloned voices, and exciting sound effects. 🌟🎙️💥
 
