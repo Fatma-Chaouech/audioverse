@@ -13,21 +13,21 @@ Are you tired of reading books the traditional way? 😩 Experience a whole new 
 ## Table of Contents
 - [AudioVerse - Breathe Life Into Your Books! 📚🌱](#audioverse---breathe-life-into-your-books-)
   - [Table of Contents](#table-of-contents)
-  - [Why AudioVerse?](#why-audioverse)
-  - [Technologies That Power Us](#technologies-that-power-us)
-  - [Architecture Snapshot](#architecture-snapshot)
-  - [Sneak Peek - Demo](#sneak-peek---demo)
-  - [Installation](#installation)
-  - [Usage](#usage)
-  - [Meet Our Team](#meet-our-team)
+  - [🌟 Why AudioVerse?](#-why-audioverse)
+  - [👀 Sneak Peek - Demo](#-sneak-peek---demo)
+  - [🛠️ Technologies That Power Us](#️-technologies-that-power-us)
+  - [🏭 Architecture Snapshot](#-architecture-snapshot)
+  - [💻 Installation](#-installation)
+  - [👩‍💻 Usage](#-usage)
+  - [👋 Meet Our Team](#-meet-our-team)
     - [Fatma "PinkPanther" Chaouech](#fatma-pinkpanther-chaouech)
     - [Mohamed Nour "RedLion" Bessadok](#mohamed-nour-redlion-bessadok)
-  - [Features and Challenges 🚀🔥](#features-and-challenges-)
-    - [Features in the Pipeline ✨🛠️](#features-in-the-pipeline-️)
-    - [Challenges to Tackle 🌟🔍](#challenges-to-tackle-)
-  - [How You Can Contribute 🙌🎉](#how-you-can-contribute-)
+  - [🚀 Features and Challenges](#-features-and-challenges)
+    - [🎟️ Features in the Pipeline](#️-features-in-the-pipeline)
+    - [🔍 Challenges to Tackle](#-challenges-to-tackle)
+  - [🙌 How You Can Contribute](#-how-you-can-contribute)
 
-## Why AudioVerse?
+## 🌟 Why AudioVerse?
 
 Get ready to transform your reading experience! With AudioVerse, you're not just reading – you're immersing yourself in a symphony of words, emotions, and soundscapes. Here's what makes us unique:
 
@@ -39,19 +39,28 @@ Get ready to transform your reading experience! With AudioVerse, you're not just
 
 - **Sound Effects Magic:** Get ready for an immersive journey! We automatically integrate sound effects to elevate your storytelling experience.
 
-## Technologies That Power Us
+## 👀 Sneak Peek - Demo
+Here are some generated examples:
+
+| Text          | Voice Name          | Cloning Voice Sample           | Generated Audio 🔊 |
+| :------------ | :-----------------: | :-----------------------------: | :----------------: |
+| With an unsettling urgency, the figure checked their phone, the device casting a dim glow on their features. A call interrupted the solitude... | Andrew Huberman | ![Voice](./docs/hubermanlab.mp3) | ![Generated](docs/andrew.mp3) |
+| Brunson, a hefty fellow, was far from bashful when it came to throwing his weight around. One fateful day, ... | Dynamically Selected Voice | ❌ | ![Generated](docs/brunson.mp3) |
+
+Curious to see how the magic works? Check out our demo [here](https://github.com/Fatma-Chaouech/audioverse/assets/69005550/3d25a540-393d-4a3e-b799-a8d9826c74b9), or try it yourself on our [Demo Website](https://audioverse.streamlit.app/).
+
+
+
+## 🛠️ Technologies That Power Us
 - **ElevenLabs**
 - **OpenAI** 
 - **Streamlit** 
 - **Pinecone** 
 
-## Architecture Snapshot
+## 🏭 Architecture Snapshot
 ![architecture](docs/architecture.png)
 
-## Sneak Peek - Demo
-Curious to see how the magic works? Check out our demo [here](https://github.com/Fatma-Chaouech/audioverse/assets/69005550/3d25a540-393d-4a3e-b799-a8d9826c74b9)!
-
-## Installation
+## 💻 Installation
 1. Clone the repository
     ```
     git clone https://github.com/Fatma-Chaouech/audioverse.git
@@ -81,7 +90,7 @@ Curious to see how the magic works? Check out our demo [here](https://github.com
    ```
 7. Create a .env file (see the [.env.template](./.env.template))
 
-## Usage
+## 👩‍💻 Usage
 1. Run streamlit server
     ```
     streamlit run app.py
@@ -91,7 +100,7 @@ Curious to see how the magic works? Check out our demo [here](https://github.com
 4. Give our magic a moment to weave its spell
 5. Download your audiobook
 
-## Meet Our Team
+## 👋 Meet Our Team
 
 🎉 We're the dynamic duo behind the scenes, shaping AudioVerse with passion, innovation, and a sprinkle of quirkiness! 🎙️🛠️
 
@@ -113,11 +122,11 @@ Meet the mind that navigates the labyrinth of challenges – Mohamed is the Sher
 
 ♟️ **Fun Fact:** He's a chess aficionado, and just like a grandmaster, he's always a few steps ahead.
 
-## Features and Challenges 🚀🔥
+## 🚀 Features and Challenges 
 
 We're on a journey to create the ultimate audiobook experience with AudioVerse. While we've come a long way, there are still exciting features to be built and challenges to overcome. We believe in the power of community collaboration, and we invite you to join us on this adventure!
 
-### Features in the Pipeline ✨🛠️
+### 🎟️ Features in the Pipeline
 
 - **Enhanced Narrator Variety:** Elevate the storytelling experience by seamlessly switching between different voices, perfect for dialogues and diverse characters within the same audiobook.
 
@@ -125,7 +134,7 @@ We're on a journey to create the ultimate audiobook experience with AudioVerse. 
 
 - **Add File Parsers:** We currently support pdfs and txt files. We're working to enhance compatibility by adding support for additional file formats.
 
-### Challenges to Tackle 🌟🔍
+### 🔍 Challenges to Tackle 
 
 - **Optimizing Audiobook Generation Pipeline:** The audiobook generation process takes a significant amount of time as the size of the book increases. We're exploring ways to optimize this process, whether by reducing the number of calls made to OpenAI and ElevenLabs or by experimenting with alternative models like Stability AI or Meta's models.
 
@@ -133,7 +142,7 @@ We're on a journey to create the ultimate audiobook experience with AudioVerse. 
 
 - **PDF Parsing Improvements:** We've encountered challenges with PDF parsing using the current library. We're actively investigating alternative parsers to ensure accurate and reliable text extraction from PDF files.
 
-## How You Can Contribute 🙌🎉
+## 🙌 How You Can Contribute
 
 If you're passionate about any of the features or challenges mentioned above, or if you have your own ideas to bring to the table, we welcome your contributions!
 
