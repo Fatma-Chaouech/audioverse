@@ -11,7 +11,8 @@ from audioverse.utils import (
     read_txt_file,
     read_pdf_file,
     read_epub_file,
-    dump_file,
+    dump_streamlit_file,
+    contruct_from_paragraphs
 )
 
 
@@ -25,12 +26,14 @@ def get_file_content(streamlit_file):
                 file_contents = read_txt_file(streamlit_file)
             elif "pdf" in file_type:
                 tmp_path = os.path.join(tmp_dir, "book.pdf")
-                dump_file(streamlit_file, tmp_path)
-                file_contents = read_pdf_file(tmp_path)
+                dump_streamlit_file(streamlit_file, tmp_path)
+                pragraphs = read_pdf_file(tmp_path)
+                file_contents = contruct_from_paragraphs(pragraphs)
             elif "epub" in file_type:
                 tmp_path = os.path.join(tmp_dir, "book.epub")
-                dump_file(streamlit_file, tmp_path)
-                file_contents = read_epub_file(tmp_path)
+                dump_streamlit_file(streamlit_file, tmp_path)
+                pragraphs = read_epub_file(tmp_path)
+                file_contents = contruct_from_paragraphs(pragraphs)
         return file_contents
     except:
         return None

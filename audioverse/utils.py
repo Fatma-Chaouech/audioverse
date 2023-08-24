@@ -20,6 +20,7 @@ Functions:
 import json
 import os
 import io
+from typing import List
 from pypdf import PdfReader
 import re
 import shutil
@@ -30,6 +31,14 @@ from langchain.document_loaders import UnstructuredEPubLoader, UnstructuredPDFLo
 def save_txt_to_file(text, path):
     with open(path, "w") as f:
         f.write(text)
+
+
+def dump_streamlit_file(streamlit_file: object, path: str):
+    directory = os.path.dirname(path)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    with open(path, "wb") as f:
+        f.write(streamlit_file.getvalue())
 
 
 def save_dict_to_json(dictionnary, path):
@@ -62,43 +71,38 @@ def read_txt_file(streamlit_file: object) -> str:
     return streamlit_file.getvalue().decode("utf-8")
 
 
-def read_pdf_file(path: str) -> str:
+def read_pdf_file(path: str) -> List[str]:
     """
     This function reads a PDF file, extracts the text from all pages, and divides the content into chunks of paragraphs.
 
     Args:
-        streamlit_file (object): The PDF file to be read.
+        path (str): The path to the PDF file to be read.
 
     Returns:
-        str: A string where each chunk represents a paragraph from the PDF.
+        List[str]: A list of strings where each string represents a sentence from the PDF.
     """
-    paragraphs = [
+    return [
         doc.page_content
         for doc in UnstructuredPDFLoader(path, mode="elements").load()
         if doc.page_content.endswith(".")
     ]
-    return "\n\n".join(
-        [" ".join(paragraphs[i : i + 100]) for i in range(0, len(paragraphs), 100)]
-    )
 
 
-def dump_file(streamlit_file: object, path: str):
-    directory = os.path.dirname(path)
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    with open(path, "wb") as f:
-        f.write(streamlit_file.getvalue())
+def read_epub_file(path: str) -> List[str]:
+    """
+    This function reads an EPUB file, extracts the text from all pages, and divides the content into chunks of paragraphs.
 
+    Args:
+        path (str): The path to the EPUB file to be read.
 
-def read_epub_file(path: str):
-    paragraphs = [
+    Returns:
+        List[str]: A list of strings where each string represents a sentence from the EPUB.
+    """
+    return [
         doc.page_content
         for doc in UnstructuredEPubLoader(path, mode="elements").load()
         if doc.page_content.endswith(".")
     ]
-    return "\n\n".join(
-        [" ".join(paragraphs[i : i + 100]) for i in range(0, len(paragraphs), 100)]
-    )
 
 
 def copy_file_with_new_name(source_dir, source_filename, destination_dir, new_filename):
@@ -117,6 +121,15 @@ def clear_directory(directory):
 def remove_directory(directory):
     if os.path.exists(directory):
         os.rmdir(directory)
+
+
+def contruct_from_paragraphs(paragraphs: List[str], chunk_size=100) -> List[str]:
+    return "\n\n".join(
+        [
+            " ".join(paragraphs[i : i + chunk_size])
+            for i in range(0, len(paragraphs), chunk_size)
+        ]
+    )
 
 
 def extract_sound_effects_from_text(text):
