@@ -116,11 +116,11 @@ If you ever spot a trail of code leading to awesomeness, it's likely Fatma's wor
 ### Mohamed Nour "RedLion" Bessadok
 🧐 **Role:** Problem Solving Guru
 
-Meet the mind that navigates the labyrinth of challenges – Mohamed is the Sherlock of our team. With a knack for critical thinking, he's our puzzle solver, spotting issues before they even think of hiding. When not crafting solutions in code, he's crafting strategic moves on a chessboard. Dune by Frank Herbert holds his heart, and horses are his favorite ride.
+Meet the mind that navigates the labyrinth of challenges – Nour is the Sherlock of our team. With a knack for critical thinking, he's our puzzle solver, spotting issues before they even think of hiding. Driven by an insatiable thirst for knowledge, he feasts upon the banquet of Math and Physics, and now AI has taken its prestigious place on the menu.
 
 🌐 **Connect:** [Github](https://github.com/Mohamed-Nour-Bessadok) | [LinkedIn](https://www.linkedin.com/in/mohamed-nour-bessadok-34446b251/)
 
-♟️ **Fun Fact:** He's a chess aficionado, and just like a grandmaster, he's always a few steps ahead.
+🔥 **Fun Fact:** Fueled by ambition, the "RedLion" is on the prowl.
 
 ## 🚀 Features and Challenges 
 
