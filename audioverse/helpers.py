@@ -1,5 +1,4 @@
 import os
-import pinecone
 import time
 import openai
 import streamlit as st
@@ -13,17 +12,17 @@ from audioverse.utils import (
 )
 
 
-def get_file_content(file):
+def get_file_content(streamlit_file):
     try:
         file_contents = None
-        if file is not None:
-            file_type = file.type
+        if streamlit_file is not None:
+            file_type = streamlit_file.type
             if "text" in file_type:
-                file_contents = read_txt_file(file)
+                file_contents = read_txt_file(streamlit_file)
             elif "pdf" in file_type:
-                file_contents = read_pdf_file(file)
+                file_contents = read_pdf_file(streamlit_file)
             elif "epub" in file_type:
-                file_contents = read_epub_file(file)
+                file_contents = read_epub_file(streamlit_file)
         return file_contents
     except:
         return None

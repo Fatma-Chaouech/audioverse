@@ -17,6 +17,7 @@ from audioverse.utils import (
     create_directory_if_not_exists,
     extract_sound_effects_from_text,
     input_to_chunks,
+    save_txt_to_file
 )
 from audioverse.helpers import (
     delete_voice,
@@ -48,7 +49,7 @@ def initialize_api_keys():
 def preprare_ui():
     st.session_state.clone_voice = False
     welcome_layout()
-    uploaded_file = st.file_uploader("Upload your book", type=["txt", "pdf"])
+    uploaded_file = st.file_uploader("Upload your book", type=["txt", "pdf", "epub"])
 
     clone_voice = st.checkbox(
         "Clone Voice", key="clone_checkbox", on_change=change_cloning_state
@@ -64,17 +65,21 @@ def preprare_ui():
         use_container_width=True,
         disabled=uploaded_file is None,
     ):
+        
         content = get_file_content(uploaded_file)
-        if content:
-            run(
-                uploaded_file.name,
-                content,
-                voice_name,
-                description,
-                files,
-            )
-        else:
-            st.error("Please upload a valid txt or pdf file.")
+        save_txt_to_file(content, 'test.txt')
+        # try:
+        #     run(
+        #         uploaded_file.name,
+        #         content,
+        #         voice_name,
+        #         description,
+        #         files,
+        #     )
+
+        # except Exception as e:
+        #     print('Error: ', e)
+        #     st.error("Please upload a valid txt or pdf file.")
 
 
 def run(filename, content, voice_name, description, files):
@@ -119,7 +124,6 @@ def run(filename, content, voice_name, description, files):
 
         # for each paragraph
     with st.spinner("Generating audio... This might take a while."):
-        
         # get the sound effects
         split_with_sfx = query_model(template(content))
         sound_effects = extract_sound_effects_from_text(split_with_sfx)
