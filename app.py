@@ -67,19 +67,18 @@ def preprare_ui():
     ):
         
         content = get_file_content(uploaded_file)
-        save_txt_to_file(content, 'test.txt')
-        # try:
-        #     run(
-        #         uploaded_file.name,
-        #         content,
-        #         voice_name,
-        #         description,
-        #         files,
-        #     )
+        try:
+            run(
+                uploaded_file.name,
+                content,
+                voice_name,
+                description,
+                files,
+            )
 
-        # except Exception as e:
-        #     print('Error: ', e)
-        #     st.error("Please upload a valid txt or pdf file.")
+        except Exception as e:
+            print('Error: ', e)
+            st.error("Please upload a valid txt or pdf file.")
 
 
 def run(filename, content, voice_name, description, files):
