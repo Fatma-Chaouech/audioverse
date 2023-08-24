@@ -23,8 +23,8 @@ import io
 from pypdf import PdfReader
 import re
 import shutil
-from typing import List
 from ebooklib import epub, ITEM_DOCUMENT
+from langchain.document_loaders import UnstructuredEPubLoader, UnstructuredPDFLoader
 
 
 def save_txt_to_file(text, path):
@@ -49,7 +49,7 @@ def create_directory_if_not_exists(directory):
         os.makedirs(directory)
 
 
-def read_txt_file(streamlit_file):
+def read_txt_file(streamlit_file: object) -> str:
     """
     This function reads a text file and returns its content.
 
@@ -62,7 +62,7 @@ def read_txt_file(streamlit_file):
     return streamlit_file.getvalue().decode("utf-8")
 
 
-def read_pdf_file(streamlit_file: object) -> list:
+def read_pdf_file(path: str) -> str:
     """
     This function reads a PDF file, extracts the text from all pages, and divides the content into chunks of paragraphs.
 
@@ -70,26 +70,35 @@ def read_pdf_file(streamlit_file: object) -> list:
         streamlit_file (object): The PDF file to be read.
 
     Returns:
-        List[str]: A list of strings where each string represents a chunk of paragraphs from the PDF.
+        str: A string where each chunk represents a paragraph from the PDF.
     """
+    paragraphs = [
+        doc.page_content
+        for doc in UnstructuredPDFLoader(path, mode="elements").load()
+        if doc.page_content.endswith(".")
+    ]
+    return "\n\n".join(
+        [" ".join(paragraphs[i : i + 100]) for i in range(0, len(paragraphs), 100)]
+    )
 
-    with io.BytesIO(streamlit_file.getvalue()) as open_pdf_file:
-        reader = PdfReader(open_pdf_file)
-        paragraphs = "\n".join([page.extract_text() for page in reader.pages]).split(".\n")
 
-    # put back the periods
-    formatted_paragraphs = [para.replace('\n', ' ').strip() + "." for para in paragraphs if para.strip()]
+def dump_file(streamlit_file: object, path: str):
+    directory = os.path.dirname(path)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    with open(path, "wb") as f:
+        f.write(streamlit_file.getvalue())
 
-    return "\n\n".join(formatted_paragraphs)
 
-
-def read_epub_file(path):
-    book = epub.read_epub(path)
-    text = ""
-    for item in book.get_items():
-        if item.get_type() == ITEM_DOCUMENT:
-            text += item.get_body_content().decode("utf-8")
-    return text
+def read_epub_file(path: str):
+    paragraphs = [
+        doc.page_content
+        for doc in UnstructuredEPubLoader(path, mode="elements").load()
+        if doc.page_content.endswith(".")
+    ]
+    return "\n\n".join(
+        [" ".join(paragraphs[i : i + 100]) for i in range(0, len(paragraphs), 100)]
+    )
 
 
 def copy_file_with_new_name(source_dir, source_filename, destination_dir, new_filename):
@@ -103,6 +112,11 @@ def clear_directory(directory):
     if os.path.exists(directory):
         for filename in os.listdir(directory):
             os.remove(os.path.join(directory, filename))
+
+
+def remove_directory(directory):
+    if os.path.exists(directory):
+        os.rmdir(directory)
 
 
 def extract_sound_effects_from_text(text):

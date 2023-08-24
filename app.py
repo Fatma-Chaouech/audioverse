@@ -4,7 +4,7 @@ import time
 from dotenv import load_dotenv
 import streamlit as st
 import openai
-from elevenlabs import generate, play, clone, save
+from elevenlabs import generate, clone, save
 from audioverse.prompts import VoiceCategoryPrompt
 from audioverse.prompts.sound_effects import SoundEffectsPrompt
 from audioverse.layout import welcome_layout, clone_section_layout
@@ -17,7 +17,8 @@ from audioverse.utils import (
     create_directory_if_not_exists,
     extract_sound_effects_from_text,
     input_to_chunks,
-    save_txt_to_file
+    save_txt_to_file,
+    remove_directory
 )
 from audioverse.helpers import (
     delete_voice,
@@ -121,7 +122,6 @@ def run(filename, content, voice_name, description, files):
         # prepare the sound effects template
         template = SoundEffectsPrompt()
 
-        # for each paragraph
     with st.spinner("Generating audio... This might take a while."):
         # get the sound effects
         split_with_sfx = query_model(template(content))
@@ -180,7 +180,7 @@ def run(filename, content, voice_name, description, files):
     print("Audio generation...")
     st.toast("Audiobook generated!", icon="🎉")
     st.balloons()
-    # play(audiobook)
+
     clear_directory(temp_dir)
 
     # if cloning is selected, delete the cloned voice
@@ -201,3 +201,5 @@ if __name__ == "__main__":
     except Exception as e:
         st.error(e)
         clear_directory("./voices/generated")
+        clear_directory("./tmp")
+        remove_directory("./tmp")

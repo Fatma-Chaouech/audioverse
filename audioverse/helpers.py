@@ -4,28 +4,39 @@ import openai
 import streamlit as st
 from elevenlabs.api import Voices
 from audioverse.utils import (
+    clear_directory,
     get_file_if_path_exists,
+    remove_directory,
     save_dict_to_json,
     read_txt_file,
     read_pdf_file,
     read_epub_file,
+    dump_file,
 )
 
 
 def get_file_content(streamlit_file):
     try:
         file_contents = None
+        tmp_dir = "tmp"
         if streamlit_file is not None:
             file_type = streamlit_file.type
             if "text" in file_type:
                 file_contents = read_txt_file(streamlit_file)
             elif "pdf" in file_type:
-                file_contents = read_pdf_file(streamlit_file)
+                tmp_path = os.path.join(tmp_dir, "book.pdf")
+                dump_file(streamlit_file, tmp_path)
+                file_contents = read_pdf_file(tmp_path)
             elif "epub" in file_type:
-                file_contents = read_epub_file(streamlit_file)
+                tmp_path = os.path.join(tmp_dir, "book.epub")
+                dump_file(streamlit_file, tmp_path)
+                file_contents = read_epub_file(tmp_path)
         return file_contents
     except:
         return None
+    finally:
+        clear_directory(tmp_dir)
+        remove_directory(tmp_dir)
 
 
 def get_voices_info():
