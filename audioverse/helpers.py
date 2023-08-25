@@ -1,18 +1,17 @@
 import os
 import time
-import openai
 import streamlit as st
-from elevenlabs.api import Voices
+from audioverse.book_utils import chunked_text_from_paragraphs
+from audioverse.elevenlabs_utils import delete_voice, get_voices_info
+from audioverse.openai_utils import generate_embeddings, query_model
+from audioverse.prompts.voice_category import VoiceCategoryPrompt
 from audioverse.utils import (
     clear_directory,
-    get_file_if_path_exists,
     remove_directory,
-    save_dict_to_json,
     read_txt_file,
     read_pdf_file,
     read_epub_file,
     dump_streamlit_file,
-    contruct_from_paragraphs,
 )
 
 
@@ -28,12 +27,12 @@ def get_file_content(streamlit_file):
                 tmp_path = os.path.join(tmp_dir, "book.pdf")
                 dump_streamlit_file(streamlit_file, tmp_path)
                 pragraphs = read_pdf_file(tmp_path)
-                file_contents = contruct_from_paragraphs(pragraphs)
+                file_contents = chunked_text_from_paragraphs(pragraphs)
             elif "epub" in file_type:
                 tmp_path = os.path.join(tmp_dir, "book.epub")
                 dump_streamlit_file(streamlit_file, tmp_path)
                 pragraphs = read_epub_file(tmp_path)
-                file_contents = contruct_from_paragraphs(pragraphs)
+                file_contents = chunked_text_from_paragraphs(pragraphs)
         return file_contents
     except:
         return None
@@ -42,29 +41,16 @@ def get_file_content(streamlit_file):
         remove_directory(tmp_dir)
 
 
-def get_voices_info():
-    voice_types = get_file_if_path_exists("voices/voice_types.json")
-    if not voice_types:
-        voices = Voices.from_api()
-        voice_types = [{"name": voice.name, "labels": voice.labels} for voice in voices]
-        save_dict_to_json(voice_types, "voice_types.json")
-    return voice_types
-
-
 def change_cloning_state():
     st.session_state.clone_voice = not st.session_state.clone_voice
-
-
-def delete_voice(voice):
-    voice.delete()
 
 
 def get_sound_effects_embeddings(folder_path):
     files = os.listdir(folder_path)
     dimension = None
     embedded_effects = []
-    for file in files:
-        file_name = " ".join(os.path.splitext(file)[0].split("_"))
+    for file_ in files:
+        file_name = " ".join(os.path.splitext(file_)[0].split("_"))
         embedding = generate_embeddings(file_name)
         embedded_effects.append((file_name, embedding))
         if not dimension:
@@ -73,34 +59,13 @@ def get_sound_effects_embeddings(folder_path):
     return embedded_effects, dimension
 
 
-def query_model(prompt):
-    completion = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": prompt["system"]},
-            {"role": "user", "content": prompt["user"]},
-        ],
-        temperature=0.2,
-    )
-    return completion.choices[0].message["content"]
+def delete_cloned_voice(files, voice):
+    if files:
+        delete_voice(voice)
 
 
-def generate_embeddings(input):
-    response = openai.Embedding.create(model="text-embedding-ada-002", input=input)
-    try:
-        embedding = response["data"][0]["embedding"]
-        return embedding
-    except KeyError:
-        print("Error: " + str(response["error"]))
-
-
-def find_most_similar_effect(description, index):
-    description_embedding = generate_embeddings(description)
-    results = index.query(vector=description_embedding, top_k=1)["matches"]
-    try:
-        if results[0]["score"] >= 0.8:
-            return results[0]["id"]
-        else:
-            return None
-    except:
-        raise KeyError("No similar sound effect found. The results are: ", results)
+def choose_voice(excerpt_book):
+    voice_types = get_voices_info()
+    template = VoiceCategoryPrompt()
+    voice = query_model(template(voice_types, excerpt_book))
+    return voice

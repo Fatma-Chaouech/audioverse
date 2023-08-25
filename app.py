@@ -1,31 +1,33 @@
 import os
-import random
 import time
 import openai
 import streamlit as st
 from dotenv import load_dotenv
 from elevenlabs import generate, clone, save
-from audioverse.prompts import VoiceCategoryPrompt
-from audioverse.prompts.sound_effects import SoundEffectsPrompt
-from audioverse.layout import welcome_layout, clone_section_layout
-from audioverse.database.pinecone import PineconeVectorDB
-from audioverse.audio.audio import construct_audiobook
-from audioverse.utils import (
+from audioverse.audio_manager.audio import construct_audiobook
+from audioverse.book_utils import (
     chunk_and_remove_sfx,
+    extract_sound_effects_from_text,
+    get_random_excerpt,
+)
+from audioverse.database.pinecone import PineconeVectorDB
+from audioverse.helpers import (
+    change_cloning_state,
+    delete_cloned_voice,
+    get_file_content,
+    get_sound_effects_embeddings,
+    choose_voice,
+)
+
+from audioverse.layout import clone_section_layout, welcome_layout
+from audioverse.openai_utils import query_model
+from audioverse.pinecone_utils import find_most_similar_effect
+from audioverse.prompts.sound_effects import SoundEffectsPrompt
+from audioverse.utils import (
     clear_directory,
     copy_file_with_new_name,
     create_directory_if_not_exists,
-    extract_sound_effects_from_text,
-    input_to_chunks,
-)
-from audioverse.helpers import (
-    delete_voice,
-    get_file_content,
-    get_voices_info,
-    change_cloning_state,
-    query_model,
-    get_sound_effects_embeddings,
-    find_most_similar_effect,
+    dump_streamlit_files,
 )
 
 
@@ -38,12 +40,11 @@ def prepare_app():
     voice_name, description, files = (
         clone_section_layout() if clone_voice else (None, None, None)
     )
-    index = initialize_app()
     if uploaded_file and st.button(
         "Upload Book", type="primary", use_container_width=True
     ):
         try:
-            run(uploaded_file, voice_name, description, files, index)
+            run(uploaded_file, voice_name, description, files)
         except Exception as e:
             print(e)
             st.error("Error: Please upload a valid file.")
@@ -52,18 +53,6 @@ def prepare_app():
 def initialize_app():
     pinecone_api_key, pinecone_environment = initialize_api_keys()
     index = initialize_vector_db(pinecone_api_key, pinecone_environment)
-    return index
-
-
-def initialize_vector_db(pinecone_api_key, pinecone_environment):
-    index_name = "sound-effects-index"
-    vector_db = PineconeVectorDB(pinecone_api_key, pinecone_environment)
-    index = vector_db.get_pinecone_index(index_name)
-    if not vector_db.has_embeddings():
-        embedded_effects, dimension = get_sound_effects_embeddings("./sounds")
-        if not vector_db.has_index():
-            index = vector_db.create_pinecone_index(index_name, dimension=dimension)
-        vector_db.embeddings_to_pinecone(embedded_effects, index)
     return index
 
 
@@ -83,25 +72,16 @@ def initialize_directories():
     return temp_dir, clone_dir
 
 
-def get_random_excerpt(content):
-    split_book = input_to_chunks(content)
-    return split_book[random.randint(0, len(split_book) - 1)]
-
-
-def choose_voice(excerpt_book):
-    voice_types = get_voices_info()
-    template = VoiceCategoryPrompt()
-    voice = query_model(template(voice_types, excerpt_book))
-    return voice
-
-
-def save_clone_files(files, clone_dir, voice_name):
-    filenames = []
-    for idx, file_ in enumerate(files):
-        filenames.append(clone_dir + "/{}_{}".format(voice_name, idx))
-        with open(filenames[idx], "wb") as f:
-            f.write(file_.getbuffer())
-    return filenames
+def initialize_vector_db(pinecone_api_key, pinecone_environment):
+    index_name = "sound-effects-index"
+    vector_db = PineconeVectorDB(pinecone_api_key, pinecone_environment)
+    index = vector_db.get_pinecone_index(index_name)
+    if not vector_db.has_embeddings():
+        embedded_effects, dimension = get_sound_effects_embeddings("./sounds")
+        if not vector_db.has_index():
+            index = vector_db.create_pinecone_index(index_name, dimension=dimension)
+        vector_db.embeddings_to_pinecone(embedded_effects, index)
+    return index
 
 
 def generate_audio(sfx_split, voice, sound_effects, index, temp_dir):
@@ -146,11 +126,6 @@ def generate_audio(sfx_split, voice, sound_effects, index, temp_dir):
         )
 
 
-def delete_cloned_voice(files, voice):
-    if files:
-        delete_voice(voice)
-
-
 def download_audiobook(audiobook, filename):
     audio_filename = filename.replace(" ", "_").split(".")[0] + ".mp3"
     st.download_button(
@@ -161,8 +136,9 @@ def download_audiobook(audiobook, filename):
     )
 
 
-def run(uploaded_file, voice_name, description, files, index):
+def run(uploaded_file, voice_name, description, files):
     with st.spinner("Processing..."):
+        index = initialize_app()
         content = get_file_content(uploaded_file)
         filename = uploaded_file.name
         temp_dir, clone_dir = initialize_directories()
@@ -175,7 +151,7 @@ def run(uploaded_file, voice_name, description, files, index):
 
         # if cloning is selected, get the voice clone
         else:
-            filenames = save_clone_files(files, clone_dir, voice_name)
+            filenames = dump_streamlit_files(files, clone_dir, voice_name)
             voice = clone(name=voice_name, description=description, files=filenames)
 
     # prepare the sound effects template

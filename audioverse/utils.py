@@ -19,12 +19,8 @@ Functions:
 
 import json
 import os
-import io
 from typing import List
-from pypdf import PdfReader
-import re
 import shutil
-from ebooklib import epub, ITEM_DOCUMENT
 from langchain.document_loaders import UnstructuredEPubLoader, UnstructuredPDFLoader
 
 
@@ -39,6 +35,15 @@ def dump_streamlit_file(streamlit_file: object, path: str):
         os.makedirs(directory)
     with open(path, "wb") as f:
         f.write(streamlit_file.getvalue())
+
+
+def dump_streamlit_files(files: List[object], directory: str, name: str):
+    filenames = []
+    for idx, file_ in enumerate(files):
+        filenames.append(directory + "/{}_{}".format(name, idx))
+        with open(filenames[idx], "wb") as f:
+            f.write(file_.getbuffer())
+    return filenames
 
 
 def save_dict_to_json(dictionnary, path):
@@ -121,39 +126,3 @@ def clear_directory(directory):
 def remove_directory(directory):
     if os.path.exists(directory):
         os.rmdir(directory)
-
-
-def contruct_from_paragraphs(paragraphs: List[str], chunk_size=100) -> List[str]:
-    return "\n\n".join(
-        [
-            " ".join(paragraphs[i : i + chunk_size])
-            for i in range(0, len(paragraphs), chunk_size)
-        ]
-    )
-
-
-def extract_sound_effects_from_text(text):
-    pattern = r"\[([^]]+)\]"
-    matches = re.findall(pattern, text)
-    return matches
-
-
-def input_to_chunks(input_text):
-    return [x.strip() for x in input_text.split("\n\n") if x.strip() != ""]
-
-
-def chunk_and_remove_sfx(text):
-    chunks_with_sfx = text.split("[")
-    chunks_without_sfx = []
-
-    for chunk_sfx in chunks_with_sfx:
-        index_closing_bracket = chunk_sfx.find("]")
-
-        if index_closing_bracket != -1:
-            remaining_chunk = chunk_sfx[index_closing_bracket + 1 :]
-            if remaining_chunk != "":
-                chunks_without_sfx.append(remaining_chunk)
-        else:
-            chunks_without_sfx.append(chunk_sfx)
-
-    return chunks_without_sfx
