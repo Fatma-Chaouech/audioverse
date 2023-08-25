@@ -42,7 +42,7 @@ Get ready to transform your reading experience! With AudioVerse, you're not just
 ## 👀 Sneak Peek - Demo
 Here are some generated examples:
 
-| Text          | Voice Name          | Cloning Voice Sample           | Generated Audio 🔊 |
+| Input Text          | Voice Name          | Cloning Voice Sample           | Generated Audio 🔊 |
 | :------------ | :-----------------: | :-----------------------------: | :----------------: |
 | With an unsettling urgency, the figure checked their phone, the device casting a dim glow on their features. A call interrupted the solitude... | Andrew Huberman | ![Voice](./docs/hubermanlab.mp3) | ![Generated](docs/andrew.mp3) |
 | Brunson, a hefty fellow, was far from bashful when it came to throwing his weight around. One fateful day, ... | Dynamically Selected Voice | ❌ | ![Generated](docs/brunson.mp3) |
@@ -140,7 +140,7 @@ We're on a journey to create the ultimate audiobook experience with AudioVerse. 
 
 - **Enriching Sound Effects:** Currently, the accuracy of sound effect insertion varies due to a limited database. We're on a mission to create a comprehensive sound effects library, categorized by topics. Additionally, we're exploring the use of text-to-sound models to generate unique and accurate sound effects.
 
-- **PDF Parsing Improvements:** We've encountered challenges with PDF parsing using the current library. We're actively investigating alternative parsers to ensure accurate and reliable text extraction from PDF files.
+- **Enhancing Book Parsing:** We're exploring optimal methods for extracting the content from books, such as skipping elements like the table of contents.
 
 ## 🙌 How You Can Contribute
 

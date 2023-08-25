@@ -1,15 +1,15 @@
 import os
 import random
 import time
-from dotenv import load_dotenv
-import streamlit as st
 import openai
+import streamlit as st
+from dotenv import load_dotenv
 from elevenlabs import generate, clone, save
 from audioverse.prompts import VoiceCategoryPrompt
 from audioverse.prompts.sound_effects import SoundEffectsPrompt
 from audioverse.layout import welcome_layout, clone_section_layout
-from audioverse.vector_db.pinecone import PineconeVectorDB
-from audioverse.audio.audio import contruct_audiobook
+from audioverse.database.pinecone import PineconeVectorDB
+from audioverse.audio.audio import construct_audiobook
 from audioverse.utils import (
     chunk_and_remove_sfx,
     clear_directory,
@@ -17,8 +17,6 @@ from audioverse.utils import (
     create_directory_if_not_exists,
     extract_sound_effects_from_text,
     input_to_chunks,
-    save_txt_to_file,
-    remove_directory
 )
 from audioverse.helpers import (
     delete_voice,
@@ -31,12 +29,42 @@ from audioverse.helpers import (
 )
 
 
+def prepare_app():
+    welcome_layout()
+    st.session_state.clone_voice = False
+    uploaded_file = st.file_uploader("Upload your book", type=["txt", "pdf", "epub"])
+
+    clone_voice = st.checkbox("Clone Voice", on_change=change_cloning_state)
+    voice_name, description, files = (
+        clone_section_layout() if clone_voice else (None, None, None)
+    )
+    index = initialize_app()
+    if uploaded_file and st.button(
+        "Upload Book", type="primary", use_container_width=True
+    ):
+        try:
+            run(uploaded_file, voice_name, description, files, index)
+        except Exception as e:
+            print(e)
+            st.error("Error: Please upload a valid file.")
+
+
 def initialize_app():
     pinecone_api_key, pinecone_environment = initialize_api_keys()
+    index = initialize_vector_db(pinecone_api_key, pinecone_environment)
+    return index
+
+
+def initialize_vector_db(pinecone_api_key, pinecone_environment):
     index_name = "sound-effects-index"
     vector_db = PineconeVectorDB(pinecone_api_key, pinecone_environment)
     index = vector_db.get_pinecone_index(index_name)
-    return index_name, vector_db, index
+    if not vector_db.has_embeddings():
+        embedded_effects, dimension = get_sound_effects_embeddings("./sounds")
+        if not vector_db.has_index():
+            index = vector_db.create_pinecone_index(index_name, dimension=dimension)
+        vector_db.embeddings_to_pinecone(embedded_effects, index)
+    return index
 
 
 def initialize_api_keys():
@@ -47,146 +75,84 @@ def initialize_api_keys():
     return pinecone_api_key, pinecone_environment
 
 
-def preprare_ui():
-    st.session_state.clone_voice = False
-    welcome_layout()
-    uploaded_file = st.file_uploader("Upload your book", type=["txt", "pdf", "epub"])
-
-    clone_voice = st.checkbox(
-        "Clone Voice", key="clone_checkbox", on_change=change_cloning_state
-    )
-    if clone_voice:
-        voice_name, description, files = clone_section_layout()
-    else:
-        voice_name, description, files = None, None, None
-
-    if st.button(
-        "Upload Book",
-        type="primary",
-        use_container_width=True,
-        disabled=uploaded_file is None,
-    ):
-        
-        content = get_file_content(uploaded_file)
-        try:
-            run(
-                uploaded_file.name,
-                content,
-                voice_name,
-                description,
-                files,
-            )
-
-        except Exception as e:
-            print('Error: ', e)
-            st.error("Please upload a valid txt or pdf file.")
+def initialize_directories():
+    temp_dir = "./voices/generated"
+    clone_dir = "./voices/clone"
+    create_directory_if_not_exists(temp_dir)
+    create_directory_if_not_exists(clone_dir)
+    return temp_dir, clone_dir
 
 
-def run(filename, content, voice_name, description, files):
-    audio_filename = filename.replace(" ", "_").split(".")[0] + ".mp3"
-    with st.spinner("Processing..."):
-        index_name, vector_db, index = initialize_app()
-        temp_dir = "./voices/generated"
-        clone_dir = "./voices/clone"
-        create_directory_if_not_exists(temp_dir)
-        create_directory_if_not_exists(clone_dir)
+def get_random_excerpt(content):
+    split_book = input_to_chunks(content)
+    return split_book[random.randint(0, len(split_book) - 1)]
 
-        # generate sound effects embeddings
-        if not vector_db.has_embeddings():
-            embedded_effects, dimension = get_sound_effects_embeddings("./sounds")
-            if not vector_db.has_index():
-                index = vector_db.create_pinecone_index(index_name, dimension=dimension)
-            vector_db.embeddings_to_pinecone(embedded_effects, index)
 
-        # if cloning is not selected
-        if not files:
-            # split the book into paragraphs
-            split_book = input_to_chunks(content)
+def choose_voice(excerpt_book):
+    voice_types = get_voices_info()
+    template = VoiceCategoryPrompt()
+    voice = query_model(template(voice_types, excerpt_book))
+    return voice
 
-            # choose voice based on random excerpt
-            excerpt_book = split_book[random.randint(0, len(split_book) - 1)]
-            voice_types = get_voices_info()
-            template = VoiceCategoryPrompt()
-            voice = query_model(template(voice_types, excerpt_book))
-            print("GPT has chosen {} for the voice actor...".format(voice))
 
-        # get the voice, if cloning is selected
-        else:
-            filenames = []
-            for idx, file_ in enumerate(files):
-                filenames.append(clone_dir + "/{}_{}".format(voice_name, idx))
-                with open(filenames[idx], "wb") as f:
-                    f.write(file_.getbuffer())
-            voice = clone(name=voice_name, description=description, files=filenames)
+def save_clone_files(files, clone_dir, voice_name):
+    filenames = []
+    for idx, file_ in enumerate(files):
+        filenames.append(clone_dir + "/{}_{}".format(voice_name, idx))
+        with open(filenames[idx], "wb") as f:
+            f.write(file_.getbuffer())
+    return filenames
 
-        # prepare the sound effects template
-        template = SoundEffectsPrompt()
 
-    with st.spinner("Generating audio... This might take a while."):
-        # get the sound effects
-        split_with_sfx = query_model(template(content))
-        sound_effects = extract_sound_effects_from_text(split_with_sfx)
-        print("Extracted sound effects: ", sound_effects)
-        st.toast("Extracted sound effects!", icon="🎉")
+def generate_audio(sfx_split, voice, sound_effects, index, temp_dir):
+    progress_bar = st.progress(0, text="Audio 0/{}".format(len(sfx_split)))
 
-        # split the paragraph by the sound effect, and remove them
-        sfx_split = chunk_and_remove_sfx(split_with_sfx)
+    for idx2, subparagraph in enumerate(sfx_split):
+        # send the audio to elevenlabs
+        audio = generate(subparagraph, voice=voice)
 
-        progress_bar = st.progress(0, text="Audio 0/{}".format(len(sfx_split)))
+        # store it
+        save(audio=audio, filename=temp_dir + f"/voice{0}_{idx2}.mp3")
 
-        # for each subparagraph
-        for idx2, subparagraph in enumerate(sfx_split):
-            # send the audio to elevenlabs
-            audio = generate(subparagraph, voice=voice)
+        if len(sound_effects) == 0:
+            time.sleep(20)
 
-            # store it
-            save(audio=audio, filename=temp_dir + f"/voice{0}_{idx2}.mp3")
+        # get the corresponding sound effect, if there still is one
+        if idx2 < len(sound_effects):
+            similar_effect = find_most_similar_effect(sound_effects[idx2], index)
 
-            # get the corresponding sound effect, if there still is one
-            print(f"{idx2}")
-            if len(sound_effects) == 0:
+            if similar_effect:
+                # store that sound effect
+                copy_file_with_new_name(
+                    "./sounds",
+                    similar_effect + ".mp3",
+                    temp_dir,
+                    str(f"sfx{0}_{idx2}.mp3"),
+                )
+            else:
+                copy_file_with_new_name(
+                    "./sounds",
+                    "silence.mp3",
+                    temp_dir,
+                    str(f"sfx{0}_{idx2}.mp3"),
+                )
+            if idx2 != len(sfx_split) - 1:
+                # sleep to avoid rate limit
                 time.sleep(20)
 
-            if idx2 < len(sound_effects):
-                similar_effect = find_most_similar_effect(sound_effects[idx2], index)
+        progress_bar.progress(
+            (idx2 + 1) / len(sfx_split),
+            text="Audio {}/{}".format(idx2 + 1, len(sfx_split)),
+        )
 
-                if similar_effect:
-                    # store that sound effect
-                    copy_file_with_new_name(
-                        "./sounds",
-                        similar_effect + ".mp3",
-                        temp_dir,
-                        str(f"sfx{0}_{idx2}.mp3"),
-                    )
-                else:
-                    copy_file_with_new_name(
-                        "./sounds",
-                        "silence.mp3",
-                        temp_dir,
-                        str(f"sfx{0}_{idx2}.mp3"),
-                    )
-                if idx2 != len(sfx_split) - 1:
-                    # sleep to avoid rate limit
-                    time.sleep(20)
 
-            progress_bar.progress(
-                (idx2 + 1) / len(sfx_split),
-                text="Audio {}/{}".format(idx2 + 1, len(sfx_split)),
-            )
-
-    with st.spinner("Constructing the audiobook..."):
-        audiobook = contruct_audiobook(temp_dir)
-
-    print("Audio generation...")
-    st.toast("Audiobook generated!", icon="🎉")
-    st.balloons()
-
-    clear_directory(temp_dir)
-
-    # if cloning is selected, delete the cloned voice
+def delete_cloned_voice(files, voice):
     if files:
         delete_voice(voice)
 
+
+def download_audiobook(audiobook, filename):
+    audio_filename = filename.replace(" ", "_").split(".")[0] + ".mp3"
     st.download_button(
         label="Save Audiobook",
         data=audiobook,
@@ -195,11 +161,46 @@ def run(filename, content, voice_name, description, files):
     )
 
 
+def run(uploaded_file, voice_name, description, files, index):
+    with st.spinner("Processing..."):
+        content = get_file_content(uploaded_file)
+        filename = uploaded_file.name
+        temp_dir, clone_dir = initialize_directories()
+
+        # if cloning is not selected, let gpt choose
+        if not files:
+            excerpt_book = get_random_excerpt(content)
+            voice = choose_voice(excerpt_book)
+            print("GPT has chosen the voice of", voice)
+
+        # if cloning is selected, get the voice clone
+        else:
+            filenames = save_clone_files(files, clone_dir, voice_name)
+            voice = clone(name=voice_name, description=description, files=filenames)
+
+    # prepare the sound effects template
+    template = SoundEffectsPrompt()
+    with st.spinner("Generating audio... This might take a while."):
+        # get the sound effects
+        split_with_sfx = query_model(template(content))
+        sound_effects = extract_sound_effects_from_text(split_with_sfx)
+
+        st.toast("Extracted sound effects!", icon="🎉")
+
+        # split the paragraph by the sound effect, and remove them
+        sfx_split = chunk_and_remove_sfx(split_with_sfx)
+        generate_audio(sfx_split, voice, sound_effects, index, temp_dir)
+
+    with st.spinner("Constructing the audiobook..."):
+        audiobook = construct_audiobook(temp_dir)
+
+    st.toast("Audiobook generated!", icon="🎉")
+    st.balloons()
+
+    clear_directory(temp_dir)
+    delete_cloned_voice(files, voice)
+    download_audiobook(audiobook, filename)
+
+
 if __name__ == "__main__":
-    try:
-        preprare_ui()
-    except Exception as e:
-        st.error(e)
-        clear_directory("./voices/generated")
-        clear_directory("./tmp")
-        remove_directory("./tmp")
+    prepare_app()

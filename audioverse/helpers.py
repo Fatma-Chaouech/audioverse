@@ -12,7 +12,7 @@ from audioverse.utils import (
     read_pdf_file,
     read_epub_file,
     dump_streamlit_file,
-    contruct_from_paragraphs
+    contruct_from_paragraphs,
 )
 
 
@@ -70,7 +70,6 @@ def get_sound_effects_embeddings(folder_path):
         if not dimension:
             dimension = len(embedding)
         time.sleep(20)
-        print("Processed: " + file_name)
     return embedded_effects, dimension
 
 

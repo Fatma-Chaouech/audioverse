@@ -83,7 +83,7 @@ def apply_sfx_to_voice(voice_files, sfx_files):
     return clip
 
 
-def contruct_audiobook(input_dir):
+def construct_audiobook(input_dir):
     voice_files, sfx_files = load_audio_files(input_dir)
     audiobook = apply_sfx_to_voice(voice_files, sfx_files)
     temp = os.path.join(input_dir, "final.mp3")
