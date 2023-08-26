@@ -92,9 +92,25 @@ def get_text_sfx(prompt, index):
     stream = stream_query_model(prompt)
 
     for word in stream:
-        chunk, sfx, sound_effects = update_chunk_sfx(word, chunk, sfx, sound_effects, index)
+        chunk, sfx, sound_effects = update_chunk_sfx(
+            word, chunk, sfx, sound_effects, index
+        )
 
     return chunk, sound_effects
+
+
+def get_voice(files, clone_dir, voice_name, description, content):
+    # if cloning is not selected, let gpt choose
+    if not files:
+        excerpt_book = get_random_excerpt(content)
+        voice = choose_voice(excerpt_book)
+        print("GPT has chosen the voice of", voice)
+
+    # if cloning is selected, get the voice clone
+    else:
+        filenames = dump_streamlit_files(files, clone_dir, voice_name)
+        voice = clone(name=voice_name, description=description, files=filenames)
+    return voice
 
 
 def generate_audio(chunk, voice, temp_dir):
@@ -108,25 +124,20 @@ async def run(uploaded_file, voice_name, description, files):
         content = get_file_content(uploaded_file)
         filename = uploaded_file.name
         temp_dir, clone_dir = initialize_directories()
-
-        # if cloning is not selected, let gpt choose
-        if not files:
-            excerpt_book = get_random_excerpt(content)
-            voice = choose_voice(excerpt_book)
-            print("GPT has chosen the voice of", voice)
-
-        # if cloning is selected, get the voice clone
-        else:
-            filenames = dump_streamlit_files(files, clone_dir, voice_name)
-            voice = clone(name=voice_name, description=description, files=filenames)
-
-    template = SoundEffectsPrompt()
-    sound_effects, chunk = [], ""
+        template = SoundEffectsPrompt()
+        sound_effects, chunk = [], ""
 
     with st.spinner("Generating audio... This might take a while."):
-        chunk, sound_effects = get_text_sfx(prompt=template(text=content), index=index)
-
         with concurrent.futures.ThreadPoolExecutor() as executor:
+            future_voice = executor.submit(get_voice, files, clone_dir, voice_name, description, content)
+
+        
+            future_text_sfx = executor.submit(get_text_sfx, template(text=content), index)
+
+            # wait for both tasks to complete
+            voice = future_voice.result()
+            chunk, sound_effects = future_text_sfx.result()
+
             future_storing = executor.submit(
                 store_sound_effects, sound_effects, temp_dir
             )
