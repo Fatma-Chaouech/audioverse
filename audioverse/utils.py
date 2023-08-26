@@ -1,22 +1,3 @@
-"""
-audioverse/utils.py
-
-This module contains utility functions for the Audioverse project.
-
-Functions:
-    save_dict_to_json(dictionnary, path): Save a dictionary to a JSON file.
-    get_file_if_path_exists(path): Return the content of a file if the file exists.
-    create_directory_if_not_exists(directory): Create a directory if it does not exist.
-    read_txt_file(streamlit_file): Read a text file and return its content.
-    read_pdf_file(streamlit_file): Read a PDF file and return the text from each page.
-    read_epub_file(path): Read an EPUB file and return its text content.
-    copy_file_with_new_name(source_dir, source_filename, destination_dir, new_filename): Copy a file to a new location with a new name.
-    clear_directory(directory): Delete all files in a directory.
-    extract_sound_effects_from_text(text): Extract sound effects from a text.
-    input_to_chunks(input_text): Split a text into chunks.
-    chunk_and_remove_sfx(text): Split a text into chunks and remove sound effects.
-"""
-
 import json
 import os
 from typing import List

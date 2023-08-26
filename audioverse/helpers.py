@@ -7,6 +7,7 @@ from audioverse.openai_utils import generate_embeddings, query_model
 from audioverse.prompts.voice_category import VoiceCategoryPrompt
 from audioverse.utils import (
     clear_directory,
+    copy_file_with_new_name,
     remove_directory,
     read_txt_file,
     read_pdf_file,
@@ -59,6 +60,25 @@ def get_sound_effects_embeddings(folder_path):
     return embedded_effects, dimension
 
 
+def store_sound_effects(sound_effects, directory):
+    for idx, sfx in enumerate(sound_effects):
+        if sfx:
+            copy_file_with_new_name(
+                "./sounds",
+                sfx + ".mp3",
+                directory,
+                str(f"sfx{0}_{idx}.mp3"),
+            )
+        else:
+            copy_file_with_new_name(
+                "./sounds",
+                "silence.mp3",
+                directory,
+                str(f"sfx{0}_{idx}.mp3"),
+            )
+            
+
+
 def delete_cloned_voice(files, voice):
     if files:
         delete_voice(voice)
@@ -67,5 +87,4 @@ def delete_cloned_voice(files, voice):
 def choose_voice(excerpt_book):
     voice_types = get_voices_info()
     template = VoiceCategoryPrompt()
-    voice = query_model(template(voice_types, excerpt_book))
-    return voice
+    return query_model(template(voices=voice_types, text=excerpt_book))
