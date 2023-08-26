@@ -7,22 +7,23 @@ class PineconeVectorDB:
         self.index = None
 
     def create_pinecone_index(self, index_name, dimension):
-        pinecone.create_index(index_name, dimension=dimension)
-        self.index = pinecone.Index(index_name)
+        self.index = pinecone.Index(index_name, dimension=dimension)
         return self.index
 
-    def get_pinecone_index(self, index_name):
+    def get_pinecone_index(self):
+        return self.index
+
+    def has_embeddings(self, index_name):
+        return (
+            self.has_index(index_name)
+            and self.index.describe_index_stats()["total_vector_count"] != 0
+        )
+
+    def has_index(self, index_name):
         if index_name in pinecone.list_indexes():
             self.index = pinecone.Index(index_name)
-        return self.index
+            return True
+        return False
 
-    def has_embeddings(self):
-        return (
-            self.index and self.index.describe_index_stats()["total_vector_count"] != 0
-        )
-    
-    def has_index(self):
-        return self.index is not None
-
-    def embeddings_to_pinecone(self, id_embeddings, index):
-        index.upsert(vectors=id_embeddings)
+    def embeddings_to_pinecone(self, id_embeddings):
+        self.index.upsert(vectors=id_embeddings)
