@@ -14,7 +14,7 @@ from audioverse.utils import (
     read_epub_file,
     dump_streamlit_file,
 )
-from decorators import start_end_decorator, timing_decorator
+from audioverse.decorators import start_end_decorator, timing_decorator
 
 
 def get_file_content(streamlit_file):
@@ -57,7 +57,7 @@ def get_sound_effects_embeddings(folder_path):
             with embedding_lock_manager:
                 embedding = generate_embeddings(file_name)
         except Exception as e:
-            print('Exception in get_sound_effects_embeddings', e)
+            print("Exception in get_sound_effects_embeddings", e)
             embedding_lock_manager.force_release()
         embedded_effects.append((file_name, embedding))
         if not dimension:
@@ -98,6 +98,6 @@ def choose_voice(excerpt_book):
         with gpt_lock_manager:
             voice = query_model(template(voices=voice_types, text=excerpt_book))
     except Exception as e:
-        print('Exception in choose voice', e)
+        print("Exception in choose voice", e)
         gpt_lock_manager.force_release()
     return voice

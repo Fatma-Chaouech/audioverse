@@ -65,15 +65,16 @@ def initialize_directories():
 def initialize_vector_db(pinecone_api_key, pinecone_environment):
     index_name = "sound-effects-index"
     vector_db = PineconeVectorDB(pinecone_api_key, pinecone_environment)
-    index = vector_db.get_pinecone_index(index_name)
-    if not vector_db.has_embeddings():
+    if not vector_db.has_index(index_name):
         embedded_effects, dimension = get_sound_effects_embeddings("./sounds")
-        if not vector_db.has_index():
-            index = vector_db.create_pinecone_index(index_name, dimension=dimension)
-        try:
-            vector_db.embeddings_to_pinecone(embedded_effects)
-        except Exception as e:
-            print(e)
+        index = vector_db.create_pinecone_index(index_name, dimension)
+        vector_db.embeddings_to_pinecone(embedded_effects)
+    elif not vector_db.has_embeddings(index_name):
+        index = vector_db.get_pinecone_index()
+        embedded_effects, dimension = get_sound_effects_embeddings("./sounds")
+        vector_db.embeddings_to_pinecone(embedded_effects)
+    else:
+        index = vector_db.get_pinecone_index()
     return index
 
 
