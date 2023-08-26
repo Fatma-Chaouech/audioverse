@@ -1,4 +1,3 @@
-import asyncio
 import concurrent.futures
 import os
 import openai
@@ -6,6 +5,7 @@ import streamlit as st
 from dotenv import load_dotenv
 from elevenlabs import generate, clone
 from elevenlabs import save
+from audioverse.lock_manager import GPTLockManager
 from audioverse.audio_manager.audio import construct_audiobook
 from audioverse.book_utils import get_random_excerpt, update_chunk_sfx
 from audioverse.database.pinecone import PineconeVectorDB
@@ -28,7 +28,7 @@ from audioverse.utils import (
 )
 
 
-async def prepare_app():
+def prepare_app():
     welcome_layout()
     st.session_state.clone_voice = False
     uploaded_file = st.file_uploader("Upload your book", type=["txt", "pdf", "epub"])
@@ -40,7 +40,7 @@ async def prepare_app():
     if uploaded_file and st.button(
         "Upload Book", type="primary", use_container_width=True
     ):
-        await run(uploaded_file, voice_name, description, files)
+        run(uploaded_file, voice_name, description, files)
 
 
 def initialize_app():
@@ -89,7 +89,8 @@ def download_audiobook(audiobook, filename):
 
 def get_text_sfx(prompt, index):
     sound_effects, chunk, sfx = [], "", ""
-    stream = stream_query_model(prompt)
+    with GPTLockManager():
+        stream = stream_query_model(prompt)
 
     for word in stream:
         chunk, sfx, sound_effects = update_chunk_sfx(
@@ -118,7 +119,7 @@ def generate_audio(chunk, voice, temp_dir):
     save(audio=audio, filename=temp_dir + f"/voice.mp3")
 
 
-async def run(uploaded_file, voice_name, description, files):
+def run(uploaded_file, voice_name, description, files):
     with st.spinner("Processing..."):
         index = initialize_app()
         content = get_file_content(uploaded_file)
@@ -129,10 +130,13 @@ async def run(uploaded_file, voice_name, description, files):
 
     with st.spinner("Generating audio... This might take a while."):
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            future_voice = executor.submit(get_voice, files, clone_dir, voice_name, description, content)
+            future_voice = executor.submit(
+                get_voice, files, clone_dir, voice_name, description, content
+            )
 
-        
-            future_text_sfx = executor.submit(get_text_sfx, template(text=content), index)
+            future_text_sfx = executor.submit(
+                get_text_sfx, template(text=content), index
+            )
 
             # wait for both tasks to complete
             voice = future_voice.result()
@@ -159,4 +163,4 @@ async def run(uploaded_file, voice_name, description, files):
 
 
 if __name__ == "__main__":
-    asyncio.run(prepare_app())
+    prepare_app()

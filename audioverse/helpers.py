@@ -1,6 +1,7 @@
 import os
 import time
 import streamlit as st
+from audioverse.lock_manager import GPTLockManager
 from audioverse.book_utils import chunked_text_from_paragraphs
 from audioverse.elevenlabs_utils import delete_voice, get_voices_info
 from audioverse.openai_utils import generate_embeddings, query_model
@@ -76,7 +77,6 @@ def store_sound_effects(sound_effects, directory):
                 directory,
                 str(f"sfx{0}_{idx}.mp3"),
             )
-            
 
 
 def delete_cloned_voice(files, voice):
@@ -87,4 +87,6 @@ def delete_cloned_voice(files, voice):
 def choose_voice(excerpt_book):
     voice_types = get_voices_info()
     template = VoiceCategoryPrompt()
-    return query_model(template(voices=voice_types, text=excerpt_book))
+    with GPTLockManager():
+        voice = query_model(template(voices=voice_types, text=excerpt_book))
+    return voice

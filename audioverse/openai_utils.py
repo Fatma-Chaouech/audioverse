@@ -26,8 +26,11 @@ def stream_query_model(prompt: BasePrompt):
     )
     for response in response_stream:
         try:
-            if response["choices"][0]['finish_reason'] is None and response["choices"][0]["delta"]['content'] != "":
-                yield response["choices"][0]["delta"]['content']
+            if (
+                response["choices"][0]["finish_reason"] is None
+                and response["choices"][0]["delta"]["content"] != ""
+            ):
+                yield response["choices"][0]["delta"]["content"]
         except Exception as e:
             raise ValueError("Error:", e)
 
