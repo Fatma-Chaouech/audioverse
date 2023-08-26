@@ -1,6 +1,8 @@
 import threading
 import time
 
+from audioverse.decorators import lock_release_decorator
+
 
 class GPTLockManager:
     gpt_lock = threading.Lock()
@@ -10,11 +12,9 @@ class GPTLockManager:
         cls.gpt_lock.acquire()
 
     @classmethod
+    @lock_release_decorator
     def __exit__(cls, exc_type, exc_val, exc_tb):
-        print("Sleeping for 20 seconds in GPTLockManager")
-        time.sleep(20)
         cls.gpt_lock.release()
-        print("Lock released in GPTLockManager")
 
     @classmethod
     def force_release(cls):
@@ -30,11 +30,9 @@ class EmbeddingLockManager:
         cls.emb_lock.acquire()
 
     @classmethod
+    @lock_release_decorator
     def __exit__(cls, exc_type, exc_val, exc_tb):
-        print("Sleeping for 20 seconds in EmbeddingLockManager")
-        time.sleep(20)
         cls.emb_lock.release()
-        print("Lock released in EmbeddingLockManager")
 
     @classmethod
     def force_release(cls):

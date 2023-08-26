@@ -26,6 +26,7 @@ from audioverse.utils import (
     create_directory_if_not_exists,
     dump_streamlit_files,
 )
+from audioverse.decorators import start_end_decorator, timing_decorator
 
 
 def prepare_app():
@@ -59,8 +60,9 @@ def initialize_directories():
     return temp_dir, clone_dir
 
 
+@start_end_decorator
+@timing_decorator
 def initialize_vector_db(pinecone_api_key, pinecone_environment):
-    print('STARTED INIT VECTOR DB')
     index_name = "sound-effects-index"
     vector_db = PineconeVectorDB(pinecone_api_key, pinecone_environment)
     index = vector_db.get_pinecone_index(index_name)
@@ -72,7 +74,6 @@ def initialize_vector_db(pinecone_api_key, pinecone_environment):
             vector_db.embeddings_to_pinecone(embedded_effects)
         except Exception as e:
             print(e)
-    print('ENDED INIT VECTOR DB')
     return index
 
 
@@ -86,8 +87,9 @@ def download_audiobook(audiobook, filename):
     )
 
 
+@start_end_decorator
+@timing_decorator
 def get_text_sfx(prompt, index):
-    print("STARTED GET TEXT SFX")
     sound_effects, chunk, sfx = [], "", ""
     try:
         with gpt_lock_manager:
@@ -100,12 +102,12 @@ def get_text_sfx(prompt, index):
         chunk, sfx, sound_effects = update_chunk_sfx(
             word, chunk, sfx, sound_effects, index
         )
-    print("ENDED GET TEXT SFX")
     return chunk, sound_effects
 
 
+@start_end_decorator
+@timing_decorator
 def get_voice(files, clone_dir, voice_name, description, content):
-    print("STARTED GET VOICE")
     # if cloning is not selected, let gpt choose
     if not files:
         excerpt_book = get_random_excerpt(content)
@@ -116,15 +118,14 @@ def get_voice(files, clone_dir, voice_name, description, content):
     else:
         filenames = dump_streamlit_files(files, clone_dir, voice_name)
         voice = clone(name=voice_name, description=description, files=filenames)
-    print("ENDED GET VOICE")
     return voice
 
 
+@start_end_decorator
+@timing_decorator
 def generate_audio(chunk, voice, temp_dir):
-    print('STARTED GENERATE AUDIO')
     audio = generate(chunk, voice=voice)
     save(audio=audio, filename=temp_dir + f"/voice.mp3")
-    print('ENDED GENERATE AUDIO')
 
 
 def run(uploaded_file, voice_name, description, files):
@@ -133,7 +134,6 @@ def run(uploaded_file, voice_name, description, files):
         future_index = executor.submit(
             initialize_vector_db, pinecone_api_key, pinecone_environment
         )
-        # index = initialize_vector_db(pinecone_api_key, pinecone_environment)
         content = get_file_content(uploaded_file)
         filename = uploaded_file.name
         temp_dir, clone_dir = initialize_directories()
