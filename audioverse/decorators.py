@@ -35,3 +35,15 @@ def lock_release_decorator(cls_method):
         return result
 
     return wrapper
+
+
+def simple_exception_catch_decorator(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            result = func(*args, **kwargs)
+            return result
+        except Exception as e:
+            raise f"Exception in {func.__name__}: {e}"
+
+    return wrapper

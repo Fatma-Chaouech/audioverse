@@ -1,33 +1,48 @@
 import random
-import re
 from typing import List
 
+from audioverse.pinecone_utils import find_most_similar_effect
 
-def extract_sound_effects_from_text(text):
-    pattern = r"\[([^]]+)\]"
-    matches = re.findall(pattern, text)
-    return matches
+
+def update_chunk_sfx(word, chunk, sfx, sound_effects, index):
+    idx_opening_bracket, idx_closing_bracket = brackets_position(word)
+
+    if idx_opening_bracket != -1 and idx_closing_bracket == -1:
+        chunk += word[:idx_opening_bracket] + "- - - - - - - - - - - "
+        sfx += word[idx_opening_bracket:]
+
+    elif idx_opening_bracket == -1 and idx_closing_bracket != -1:
+        sfx += word[: idx_closing_bracket - 1]
+        sound_effects.append(find_most_similar_effect(sfx[1:-1], index))
+        sfx = ""
+        chunk += word[idx_closing_bracket + 1 :]
+    elif idx_opening_bracket != -1 and idx_closing_bracket != -1:
+        chunk += (
+            word[:idx_opening_bracket]
+            + "- - - - - - - - - - - "
+            + word[idx_closing_bracket + 1 :]
+        )
+        sound_effects.append(
+            find_most_similar_effect(
+                word[idx_opening_bracket + 1 : idx_closing_bracket], index
+            )
+        )
+    elif sfx != "":
+        sfx += word
+    else:
+        chunk += word
+    return chunk, sfx, sound_effects
+
+
+def brackets_position(word):
+    idx_opening_bracket = word.find("[")
+    idx_closing_bracket = word.find("]")
+
+    return idx_opening_bracket, idx_closing_bracket
 
 
 def input_to_chunks(input_text):
     return [x.strip() for x in input_text.split("\n\n") if x.strip() != ""]
-
-
-def chunk_and_remove_sfx(text):
-    chunks_with_sfx = text.split("[")
-    chunks_without_sfx = []
-
-    for chunk_sfx in chunks_with_sfx:
-        index_closing_bracket = chunk_sfx.find("]")
-
-        if index_closing_bracket != -1:
-            remaining_chunk = chunk_sfx[index_closing_bracket + 1 :]
-            if remaining_chunk != "":
-                chunks_without_sfx.append(remaining_chunk)
-        else:
-            chunks_without_sfx.append(chunk_sfx)
-
-    return chunks_without_sfx
 
 
 def chunked_text_from_paragraphs(paragraphs: List[str], chunk_size=100) -> List[str]:

@@ -1,4 +1,5 @@
 import pinecone
+from audioverse.decorators import simple_exception_catch_decorator
 
 
 class PineconeVectorDB:
@@ -25,5 +26,6 @@ class PineconeVectorDB:
             return True
         return False
 
+    @simple_exception_catch_decorator
     def embeddings_to_pinecone(self, id_embeddings):
         self.index.upsert(vectors=id_embeddings)

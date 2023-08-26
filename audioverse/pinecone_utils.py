@@ -1,8 +1,15 @@
 from audioverse.openai_utils import generate_embeddings
+from audioverse.lock_manager import embedding_lock_manager
 
 
 def find_most_similar_effect(description, index):
-    description_embedding = generate_embeddings(description)
+    try:
+        with embedding_lock_manager:
+            description_embedding = generate_embeddings(description)
+    except Exception as e:
+        embedding_lock_manager.force_release()
+        raise e
+        
     results = index.query(vector=description_embedding, top_k=1)["matches"]
     try:
         if results[0]["score"] >= 0.8:
