@@ -128,6 +128,7 @@ def generate_audio(chunk, voice, temp_dir):
     save(audio=audio, filename=temp_dir + f"/voice.mp3")
 
 
+@timing_decorator
 def run(uploaded_file, voice_name, description, files):
     with concurrent.futures.ThreadPoolExecutor() as executor:
         pinecone_api_key, pinecone_environment = initialize_api_keys()

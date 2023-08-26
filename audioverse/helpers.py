@@ -1,5 +1,4 @@
 import os
-import time
 import streamlit as st
 from audioverse.lock_manager import embedding_lock_manager, gpt_lock_manager
 from audioverse.book_utils import chunked_text_from_paragraphs
@@ -15,6 +14,7 @@ from audioverse.utils import (
     read_epub_file,
     dump_streamlit_file,
 )
+from decorators import start_end_decorator, timing_decorator
 
 
 def get_file_content(streamlit_file):
@@ -66,8 +66,9 @@ def get_sound_effects_embeddings(folder_path):
     return embedded_effects, dimension
 
 
+@start_end_decorator
+@timing_decorator
 def store_sound_effects(sound_effects, directory):
-    print('STARTED STORE SOUND EFFECTS')
     for idx, sfx in enumerate(sound_effects):
         if sfx:
             copy_file_with_new_name(
@@ -83,7 +84,6 @@ def store_sound_effects(sound_effects, directory):
                 directory,
                 str(f"sfx{0}_{idx}.mp3"),
             )
-    print('ENDED STORE SOUND EFFECTS')
 
 
 def delete_cloned_voice(files, voice):
