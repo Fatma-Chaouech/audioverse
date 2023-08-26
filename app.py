@@ -5,7 +5,7 @@ import streamlit as st
 from dotenv import load_dotenv
 from elevenlabs import generate, clone
 from elevenlabs import save
-from audioverse.lock_manager import GPTLockManager
+from audioverse.lock_manager import gpt_lock_manager
 from audioverse.audio_manager.audio import construct_audiobook
 from audioverse.book_utils import get_random_excerpt, update_chunk_sfx
 from audioverse.database.pinecone import PineconeVectorDB
@@ -43,12 +43,6 @@ def prepare_app():
         run(uploaded_file, voice_name, description, files)
 
 
-def initialize_app():
-    pinecone_api_key, pinecone_environment = initialize_api_keys()
-    index = initialize_vector_db(pinecone_api_key, pinecone_environment)
-    return index
-
-
 def initialize_api_keys():
     load_dotenv()
     openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -66,6 +60,7 @@ def initialize_directories():
 
 
 def initialize_vector_db(pinecone_api_key, pinecone_environment):
+    print('STARTED INIT VECTOR DB')
     index_name = "sound-effects-index"
     vector_db = PineconeVectorDB(pinecone_api_key, pinecone_environment)
     index = vector_db.get_pinecone_index(index_name)
@@ -73,7 +68,11 @@ def initialize_vector_db(pinecone_api_key, pinecone_environment):
         embedded_effects, dimension = get_sound_effects_embeddings("./sounds")
         if not vector_db.has_index():
             index = vector_db.create_pinecone_index(index_name, dimension=dimension)
-        vector_db.embeddings_to_pinecone(embedded_effects, index)
+        try:
+            vector_db.embeddings_to_pinecone(embedded_effects)
+        except Exception as e:
+            print(e)
+    print('ENDED INIT VECTOR DB')
     return index
 
 
@@ -88,19 +87,25 @@ def download_audiobook(audiobook, filename):
 
 
 def get_text_sfx(prompt, index):
+    print("STARTED GET TEXT SFX")
     sound_effects, chunk, sfx = [], "", ""
-    with GPTLockManager():
-        stream = stream_query_model(prompt)
+    try:
+        with gpt_lock_manager:
+            stream = stream_query_model(prompt)
+    except Exception as e:
+        print("Exception in get_text_sfx", e)
+        gpt_lock_manager.force_release()
 
     for word in stream:
         chunk, sfx, sound_effects = update_chunk_sfx(
             word, chunk, sfx, sound_effects, index
         )
-
+    print("ENDED GET TEXT SFX")
     return chunk, sound_effects
 
 
 def get_voice(files, clone_dir, voice_name, description, content):
+    print("STARTED GET VOICE")
     # if cloning is not selected, let gpt choose
     if not files:
         excerpt_book = get_random_excerpt(content)
@@ -111,28 +116,37 @@ def get_voice(files, clone_dir, voice_name, description, content):
     else:
         filenames = dump_streamlit_files(files, clone_dir, voice_name)
         voice = clone(name=voice_name, description=description, files=filenames)
+    print("ENDED GET VOICE")
     return voice
 
 
 def generate_audio(chunk, voice, temp_dir):
+    print('STARTED GENERATE AUDIO')
     audio = generate(chunk, voice=voice)
     save(audio=audio, filename=temp_dir + f"/voice.mp3")
+    print('ENDED GENERATE AUDIO')
 
 
 def run(uploaded_file, voice_name, description, files):
-    with st.spinner("Processing..."):
-        index = initialize_app()
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        pinecone_api_key, pinecone_environment = initialize_api_keys()
+        future_index = executor.submit(
+            initialize_vector_db, pinecone_api_key, pinecone_environment
+        )
+        # index = initialize_vector_db(pinecone_api_key, pinecone_environment)
         content = get_file_content(uploaded_file)
         filename = uploaded_file.name
         temp_dir, clone_dir = initialize_directories()
         template = SoundEffectsPrompt()
         sound_effects, chunk = [], ""
 
-    with st.spinner("Generating audio... This might take a while."):
-        with concurrent.futures.ThreadPoolExecutor() as executor:
+        with st.spinner("Generating audio... This might take a while."):
             future_voice = executor.submit(
                 get_voice, files, clone_dir, voice_name, description, content
             )
+
+            # wait to get the index
+            index = future_index.result()
 
             future_text_sfx = executor.submit(
                 get_text_sfx, template(text=content), index

@@ -24,5 +24,5 @@ class PineconeVectorDB:
     def has_index(self):
         return self.index is not None
 
-    def embeddings_to_pinecone(self, id_embeddings, index):
-        index.upsert(vectors=id_embeddings)
+    def embeddings_to_pinecone(self, id_embeddings):
+        self.index.upsert(vectors=id_embeddings)

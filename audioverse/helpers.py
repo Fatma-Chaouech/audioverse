@@ -1,7 +1,7 @@
 import os
 import time
 import streamlit as st
-from audioverse.lock_manager import GPTLockManager
+from audioverse.lock_manager import embedding_lock_manager, gpt_lock_manager
 from audioverse.book_utils import chunked_text_from_paragraphs
 from audioverse.elevenlabs_utils import delete_voice, get_voices_info
 from audioverse.openai_utils import generate_embeddings, query_model
@@ -53,15 +53,21 @@ def get_sound_effects_embeddings(folder_path):
     embedded_effects = []
     for file_ in files:
         file_name = " ".join(os.path.splitext(file_)[0].split("_"))
-        embedding = generate_embeddings(file_name)
+        try:
+            with embedding_lock_manager:
+                embedding = generate_embeddings(file_name)
+        except Exception as e:
+            print('Exception in get_sound_effects_embeddings', e)
+            embedding_lock_manager.force_release()
         embedded_effects.append((file_name, embedding))
         if not dimension:
             dimension = len(embedding)
-        time.sleep(20)
+
     return embedded_effects, dimension
 
 
 def store_sound_effects(sound_effects, directory):
+    print('STARTED STORE SOUND EFFECTS')
     for idx, sfx in enumerate(sound_effects):
         if sfx:
             copy_file_with_new_name(
@@ -77,6 +83,7 @@ def store_sound_effects(sound_effects, directory):
                 directory,
                 str(f"sfx{0}_{idx}.mp3"),
             )
+    print('ENDED STORE SOUND EFFECTS')
 
 
 def delete_cloned_voice(files, voice):
@@ -87,6 +94,10 @@ def delete_cloned_voice(files, voice):
 def choose_voice(excerpt_book):
     voice_types = get_voices_info()
     template = VoiceCategoryPrompt()
-    with GPTLockManager():
-        voice = query_model(template(voices=voice_types, text=excerpt_book))
+    try:
+        with gpt_lock_manager:
+            voice = query_model(template(voices=voice_types, text=excerpt_book))
+    except Exception as e:
+        print('Exception in choose voice', e)
+        gpt_lock_manager.force_release()
     return voice
