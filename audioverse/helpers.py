@@ -39,9 +39,8 @@ def get_file_content(streamlit_file):
     except:
         return None
     finally:
-        # clear_directory(tmp_dir)
-        # remove_directory(tmp_dir)
-        pass
+        clear_directory(tmp_dir)
+        remove_directory(tmp_dir)
 
 
 def change_cloning_state():
