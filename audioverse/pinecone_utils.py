@@ -1,7 +1,9 @@
 from audioverse.openai_utils import generate_embeddings
 from audioverse.lock_manager import embedding_lock_manager
+from audioverse.decorators import simple_exception_catch_decorator
 
 
+@simple_exception_catch_decorator
 def find_most_similar_effect(description, index):
     try:
         with embedding_lock_manager:
@@ -10,10 +12,9 @@ def find_most_similar_effect(description, index):
     except Exception as e:
         print('EXception in find_most_similar_effect', e)
         embedding_lock_manager.force_release()
-    try:
-        if results[0]["score"] >= 0.8:
-            return results[0]["id"]
-        else:
-            return None
-    except:
-        raise KeyError("No similar sound effect found. The results are: ", results)
+
+    if results[0]["score"] >= 0.8:
+        return results[0]["id"]
+    else:
+        return None
+    

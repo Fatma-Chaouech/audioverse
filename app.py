@@ -27,13 +27,15 @@ from audioverse.utils import (
     dump_streamlit_files,
 )
 from audioverse.decorators import start_end_decorator, timing_decorator
+from audioverse.elevenlabs_utils import get_available_languages
 
 
 def prepare_app():
     welcome_layout()
     st.session_state.clone_voice = False
     uploaded_file = st.file_uploader("Upload your book", type=["txt", "pdf", "epub"])
-
+    pinecone_api_key, pinecone_environment = initialize_api_keys()
+    language = st.selectbox("Desired Language", get_available_languages())
     clone_voice = st.checkbox("Clone Voice", on_change=change_cloning_state)
     voice_name, description, files = (
         clone_section_layout() if clone_voice else (None, None, None)
@@ -41,7 +43,13 @@ def prepare_app():
     if uploaded_file and st.button(
         "Upload Book", type="primary", use_container_width=True
     ):
-        run(uploaded_file, voice_name, description, files)
+        run(
+            uploaded_file,
+            voice_name,
+            description,
+            files,
+            [pinecone_api_key, pinecone_environment],
+        )
 
 
 def initialize_api_keys():
@@ -125,14 +133,14 @@ def get_voice(files, clone_dir, voice_name, description, content):
 @start_end_decorator
 @timing_decorator
 def generate_audio(chunk, voice, temp_dir):
-    audio = generate(chunk, voice=voice)
+    audio = generate(chunk, voice=voice, model='eleven_monolingual_v2')
     save(audio=audio, filename=temp_dir + f"/voice.mp3")
 
 
 @timing_decorator
-def run(uploaded_file, voice_name, description, files):
+def run(uploaded_file, voice_name, description, files, keys):
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        pinecone_api_key, pinecone_environment = initialize_api_keys()
+        pinecone_api_key, pinecone_environment = keys
         future_index = executor.submit(
             initialize_vector_db, pinecone_api_key, pinecone_environment
         )

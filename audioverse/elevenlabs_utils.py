@@ -13,3 +13,7 @@ def get_voices_info():
 
 def delete_voice(voice):
     voice.delete()
+
+
+def get_available_languages():
+    return ['French', 'English', 'Arabic']
