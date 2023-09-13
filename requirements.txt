@@ -8,7 +8,6 @@ appdirs==1.4.4
 asttokens==2.2.1
 async-timeout==4.0.2
 attrs==23.1.0
-audiocraft @ git+https://git@github.com/facebookresearch/audiocraft@c09cd0cb9075e15fc96e7c791d4ba6878079601c
 audioread==3.0.0
 av==10.0.0
 backcall==0.2.0
