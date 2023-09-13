@@ -55,7 +55,7 @@ def prepare_app():
             )
         except Exception as e:
             print(e)
-            st.error(e)
+            st.error("No credits left... We will soon find a solution, please be patient.")
 
 
 def initialize_api_keys():
