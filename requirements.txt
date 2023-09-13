@@ -36,6 +36,7 @@ cymem==2.0.7
 Cython==3.0.0
 dataclasses-json==0.5.14
 decorator==4.4.2
+deepl==1.15.0
 demucs==4.0.0
 diffq==0.2.4
 dnspython==2.4.1
