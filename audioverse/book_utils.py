@@ -8,7 +8,7 @@ def update_chunk_sfx(word, chunk, sfx, sound_effects, index):
     idx_opening_bracket, idx_closing_bracket = brackets_position(word)
 
     if idx_opening_bracket != -1 and idx_closing_bracket == -1:
-        chunk += word[:idx_opening_bracket] + "- - - - - - - - - - - "
+        chunk += word[:idx_opening_bracket] + "- - - - - - - - - - - -\n- - - - - - - - - - - -"
         sfx += word[idx_opening_bracket:]
 
     elif idx_opening_bracket == -1 and idx_closing_bracket != -1:
@@ -19,7 +19,7 @@ def update_chunk_sfx(word, chunk, sfx, sound_effects, index):
     elif idx_opening_bracket != -1 and idx_closing_bracket != -1:
         chunk += (
             word[:idx_opening_bracket]
-            + "- - - - - - - - - - - "
+            + "- - - - - - - - - - - -\n- - - - - - - - - - - -"
             + word[idx_closing_bracket + 1 :]
         )
         sound_effects.append(

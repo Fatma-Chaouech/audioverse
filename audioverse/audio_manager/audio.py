@@ -2,13 +2,6 @@ import os
 from moviepy.editor import AudioFileClip, CompositeAudioClip, afx
 
 
-def audio_normalize(clip):
-    mv = clip.max_volume()
-    if mv > 0:
-        return afx.volumex(clip, 1 / mv)
-    return clip
-
-
 def load_audio_files(input_dir):
     voice_files = sorted(
         [
@@ -25,69 +18,113 @@ def load_audio_files(input_dir):
         ]
     )
 
-    # alternate between voice and sfx files
-    sfx_adapted_files = []
-    sfx_idx = 0
-    for i in range(len(voice_files)):
-        if sfx_idx >= len(sfx_files):
-            sfx_adapted_files.extend([None] * (len(voice_files) - i))
-            break
+    def normalize_clip(clip):
+        max_vol = clip.max_volume()
+        return afx.volumex(clip, 1 / max_vol) if max_vol > 0 else clip
 
-        voice = voice_files[i]
-        sfx = sfx_files[sfx_idx]
+    voice_clips = [normalize_clip(AudioFileClip(file)) for file in voice_files]
+    sfx_clips = [
+        normalize_clip(AudioFileClip(file).fx(afx.volumex, 0.1)) if file else None
+        for file in sfx_files
+    ]
 
-        voice_indexes = os.path.basename(voice).split(".")[0][len("voice") :].split("_")
-        sfx_filename = os.path.basename(sfx).split(".")[0][len("sfx") :].split("_")
+    return voice_clips, sfx_clips
 
-        if voice_indexes == sfx_filename:
-            sfx_adapted_files.append(sfx)
-            sfx_idx += 1
+
+def construct_paragraph(
+    audio_clip, sound_effects, window_size=0.5, volume_threshold=0.005, top_k=2
+):
+    def split_audio():
+        t = 0
+        while t < duration:
+            start_speaking = t
+            while (
+                t < duration
+                and audio_clip.subclip(t, t + window_size).max_volume()
+                >= volume_threshold
+            ):
+                t += window_size
+            speaking_duration = max(0, t - start_speaking)
+
+            start_silence = t
+            while (
+                t < duration
+                and audio_clip.subclip(t, t + window_size).max_volume()
+                < volume_threshold
+            ):
+                t += window_size
+            silence_duration = max(0, t - start_silence)
+
+            yield start_speaking, speaking_duration, start_silence, silence_duration
+
+    duration = int(audio_clip.duration)
+    speaking_clips = list(split_audio())
+    speaking_clips.sort(key=lambda x: x[3], reverse=True)
+
+    composite = []
+    for i, (
+        start_speaking,
+        speaking_duration,
+        start_silence,
+        silence_duration,
+    ) in enumerate(speaking_clips):
+        if i < top_k:
+            sfx = sound_effects[i]
+            overlap_duration = min(sfx.duration, 2.0)
+            sfx = sfx.fx(afx.audio_fadein, overlap_duration // 2).fx(
+                afx.audio_fadeout, overlap_duration // 2
+            )
+            composite.extend(
+                [
+                    {"start": start_silence, "value": sfx, "is_sfx": True},
+                    {
+                        "start": start_speaking,
+                        "value": audio_clip.subclip(
+                            start_speaking, start_speaking + speaking_duration
+                        ),
+                        "is_sfx": False,
+                    },
+                ]
+            )
         else:
-            sfx_adapted_files.append(None)
-
-    voice_files = [AudioFileClip(x).fx(audio_normalize) for x in voice_files]
-
-    for i, x in enumerate(sfx_adapted_files):
-        if x is not None:
-            sfx_adapted_files[i] = (
-                AudioFileClip(x).fx(audio_normalize).fx(afx.volumex, 0.1)
+            composite.append(
+                {
+                    "start": start_speaking,
+                    "value": audio_clip.subclip(
+                        start_speaking, start_silence + silence_duration
+                    ),
+                    "is_sfx": False,
+                }
             )
 
-    return voice_files, sfx_adapted_files
+    composite.sort(key=lambda x: x["start"])
+    voice_offset = 0
+    results = []
+    for audio in composite:
+        if not audio["is_sfx"]:
+            results.append(audio["value"].set_start(voice_offset))
+            voice_offset += audio["value"].duration
+        else:
+            results.append(audio["value"].set_start(voice_offset))
 
-
-def apply_sfx_to_voice(voice_files, sfx_files):
-    audiobook_clips = []
-    voice_time = 0
-    for i, voice_segment in enumerate(voice_files):
-        voice_segment = voice_segment.set_start(voice_time)
-        sound_effect = sfx_files[i]
-
-        # if there is no sound effect, just add the voice segment
-        if sound_effect is None:
-            voice_time += voice_segment.duration
-            audiobook_clips.append(voice_segment)
-            continue
-
-        overlap_duration = min(sound_effect.duration, 2.0)
-
-        # make the sfx start at the end of the voice segment
-        sound_effect = sound_effect.set_start(
-            max(0, voice_segment.duration + voice_time - overlap_duration)
-        )
-        sound_effect = sound_effect.fx(afx.audio_fadein, overlap_duration // 2)
-        sound_effect = sound_effect.fx(afx.audio_fadeout, overlap_duration // 2)
-        audiobook_clips.extend([voice_segment, sound_effect])
-        voice_time += voice_segment.duration
-    clip = CompositeAudioClip(audiobook_clips).set_fps(44100)
-    return clip
+    return CompositeAudioClip(results).set_fps(44100)
 
 
 def construct_audiobook(input_dir):
-    voice_files, sfx_files = load_audio_files(input_dir)
-    audiobook = apply_sfx_to_voice(voice_files, sfx_files)
+    voice_clips, sfx_clips = load_audio_files(input_dir)
+
+    # BUGS: the voice audio doesn't finish the last words
+    audiobook = CompositeAudioClip(
+        [
+            construct_paragraph(voice, sfx_clips, top_k=len(sfx_clips))
+            for voice in voice_clips
+        ]
+    ).set_fps(44100)
+
     temp = os.path.join(input_dir, "final.mp3")
     audiobook.write_audiofile(temp, codec="mp3")
+
     with open(temp, "rb") as file:
         audio_bytes = file.read()
+
     return audio_bytes

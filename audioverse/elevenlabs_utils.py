@@ -13,3 +13,34 @@ def get_voices_info():
 
 def delete_voice(voice):
     voice.delete()
+
+
+def get_available_languages():
+    return [
+        "English",
+        "Portuguese (Brazilian)",
+        "Portuguese (other)",
+        "Japanese",
+        "Chinese",
+        "German",
+        "French",
+        "Korean",
+        "Italian",
+        "Indonesian",
+        "Dutch",
+        "Turkish",
+        "Polish",
+        "Swedish",
+        "Bulgarian",
+        "Romanian",
+        "Arabic",
+        "Czech",
+        "Greek",
+        "Finnish",
+        "Croatian",
+        "Malay",
+        "Slovak",
+        "Danish",
+        "Tamil",
+        "Ukrainian",
+    ]

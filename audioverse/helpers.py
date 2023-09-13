@@ -97,7 +97,7 @@ def choose_voice(excerpt_book):
     try:
         with gpt_lock_manager:
             voice = query_model(template(voices=voice_types, text=excerpt_book))
+        return voice
     except Exception as e:
         print("Exception in choose voice", e)
         gpt_lock_manager.force_release()
-    return voice
