@@ -1,6 +1,7 @@
 import concurrent.futures
 import os
 import openai
+import deepl
 import streamlit as st
 from dotenv import load_dotenv
 from elevenlabs import generate, clone
@@ -34,7 +35,7 @@ def prepare_app():
     welcome_layout()
     st.session_state.clone_voice = False
     uploaded_file = st.file_uploader("Upload your book", type=["txt", "pdf", "epub"])
-    pinecone_api_key, pinecone_environment = initialize_api_keys()
+    pinecone_api_key, pinecone_environment, deepl_api_key = initialize_api_keys()
     language = st.selectbox("Desired Language", get_available_languages())
     clone_voice = st.checkbox("Clone Voice", on_change=change_cloning_state)
     voice_name, description, files = (
@@ -47,8 +48,9 @@ def prepare_app():
             uploaded_file,
             voice_name,
             description,
+            language,
             files,
-            [pinecone_api_key, pinecone_environment],
+            [pinecone_api_key, pinecone_environment, deepl_api_key],
         )
 
 
@@ -57,7 +59,8 @@ def initialize_api_keys():
     openai.api_key = os.getenv("OPENAI_API_KEY")
     pinecone_api_key = os.getenv("PINECONE_API_KEY")
     pinecone_environment = os.getenv("PINECONE_ENVIRONMENT")
-    return pinecone_api_key, pinecone_environment
+    deepl_api_key = os.getenv("DEEPL_API_KEY")
+    return pinecone_api_key, pinecone_environment, deepl_api_key
 
 
 def initialize_directories():
@@ -133,14 +136,49 @@ def get_voice(files, clone_dir, voice_name, description, content):
 @start_end_decorator
 @timing_decorator
 def generate_audio(chunk, voice, temp_dir):
-    audio = generate(chunk, voice=voice, model='eleven_monolingual_v2')
+    audio = generate(chunk, voice=voice, model="eleven_multilingual_v1")
     save(audio=audio, filename=temp_dir + f"/voice.mp3")
 
 
+@start_end_decorator
+def translate_text(text, language, api_key):
+    codes = {
+        "English": "EN-US",
+        "Japanese": "JA",
+        "Chinese": "ZH",
+        "German": "DE",
+        "French": "FR",
+        "Korean": "KO",
+        "Portuguese (Brazilian)": "PT-BR",
+        "Portuguese (not Brazilian)": "PT-PT",
+        "Italian": "IT",
+        "Indonesian": "ID",
+        "Dutch": "NL",
+        "Turkish": "TR",
+        "Polish": "PL",
+        "Swedish": "SV",
+        "Bulgarian": "BG",
+        "Romanian": "RO",
+        "Arabic": "AR",
+        "Czech": "CS",
+        "Greek": "EL",
+        "Finnish": "FI",
+        "Croatian": "HR",
+        "Malay": "MS",
+        "Slovak": "SK",
+        "Danish": "DA",
+        "Tamil": "TA",
+        "Ukrainian": "UK",
+    }
+    translator = deepl.Translator(api_key)
+    translation = translator.translate_text(text, target_lang=codes[language])
+    return translation.text
+
+
 @timing_decorator
-def run(uploaded_file, voice_name, description, files, keys):
+def run(uploaded_file, voice_name, description, language, files, keys):
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        pinecone_api_key, pinecone_environment = keys
+        pinecone_api_key, pinecone_environment, deepl_api_key = keys
         future_index = executor.submit(
             initialize_vector_db, pinecone_api_key, pinecone_environment
         )
@@ -151,13 +189,16 @@ def run(uploaded_file, voice_name, description, files, keys):
         sound_effects, chunk = [], ""
 
         with st.spinner("Generating audio... This might take a while."):
+            translated_text = executor.submit(
+                translate_text, content, language, deepl_api_key
+            )
             future_voice = executor.submit(
                 get_voice, files, clone_dir, voice_name, description, content
             )
 
             # wait to get the index
             index = future_index.result()
-
+            content = translated_text.result()
             future_text_sfx = executor.submit(
                 get_text_sfx, template(text=content), index
             )
