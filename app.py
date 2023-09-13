@@ -44,14 +44,18 @@ def prepare_app():
     if uploaded_file and st.button(
         "Upload Book", type="primary", use_container_width=True
     ):
-        run(
-            uploaded_file,
-            voice_name,
-            description,
-            language,
-            files,
-            [pinecone_api_key, pinecone_environment, deepl_api_key],
-        )
+        try:
+            run(
+                uploaded_file,
+                voice_name,
+                description,
+                language,
+                files,
+                [pinecone_api_key, pinecone_environment, deepl_api_key],
+            )
+        except Exception as e:
+            print(e)
+            st.error("No credits left... We will soon find a solution, please be patient.")
 
 
 def initialize_api_keys():
